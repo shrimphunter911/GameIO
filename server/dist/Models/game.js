@@ -6,6 +6,7 @@ module.exports = (sequelize) => {
         title: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
+            unique: true,
             validate: {
                 len: [3, 50],
             },
