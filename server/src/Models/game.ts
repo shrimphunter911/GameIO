@@ -7,7 +7,7 @@ interface GameInterface extends Model {
   description: string;
   release_date: Date;
   publisher: string;
-  imageUrl: string[];
+  imageUrl: string;
 }
 
 module.exports = (sequelize: Sequelize) => {
@@ -39,7 +39,7 @@ module.exports = (sequelize: Sequelize) => {
       },
     },
     imageUrl: {
-      type: DataTypes.ARRAY(DataTypes.STRING),
+      type: DataTypes.STRING,
     },
   }) as ModelStatic<GameInterface> & {
     associate: (db: DB) => void;

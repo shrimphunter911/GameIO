@@ -7,6 +7,7 @@ const hostname = "127.0.0.1";
 const port = 3000;
 import users from "./Routes/userRouter";
 import auth from "./Routes/authRouter";
+import games from "./Routes/gameRouter";
 
 if (!config.get("jwtPrivateKey")) {
   console.log("Fatal Error: jwtPrivateKey is not defined");
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/api/users", users);
 app.use("/api/auth", auth);
+app.use("/api/games", games);
 
 app.listen(port, hostname, async () => {
   if ("sequelize" in db) {
