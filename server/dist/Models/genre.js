@@ -13,7 +13,7 @@ module.exports = (sequelize) => {
     });
     genre.associate = (db) => {
         db.genre.belongsToMany(db.game, {
-            through: "game_genres",
+            through: db.game_genres,
             onDelete: "CASCADE",
             onUpdate: "CASCADE",
         });

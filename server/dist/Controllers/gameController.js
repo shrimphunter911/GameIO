@@ -16,6 +16,7 @@ exports.createGame = void 0;
 const Models_1 = __importDefault(require("../Models"));
 const lodash_1 = __importDefault(require("lodash"));
 const gameModel = Models_1.default.game;
+const game_genresModel = Models_1.default.game_genres;
 const createGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let games = yield gameModel.findAll({ where: { title: req.body.title } });
@@ -31,7 +32,16 @@ const createGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             imageUrl: req.body.imageUrl,
             userId: userId,
         });
-        res.status(201).json(lodash_1.default.omit(game, ["userId"]));
+        let givenGenres = req.body.genres;
+        if (givenGenres.length === 0) {
+            return res.status(400).send("No genre given");
+        }
+        const gameGenres = givenGenres.map((genreId) => ({
+            gameId: game.dataValues.id,
+            genreId: genreId,
+        }));
+        yield game_genresModel.bulkCreate(gameGenres);
+        res.status(201).json(Object.assign(Object.assign({}, lodash_1.default.omit(game.dataValues, ["userId"])), { genres: givenGenres }));
     }
     catch (error) {
         res.status(404).send(error);

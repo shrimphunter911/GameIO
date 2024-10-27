@@ -1,7 +1,8 @@
 import { Sequelize, DataTypes, Model, ModelStatic } from "sequelize";
 import { DB, ModelWithAssociations } from "./index";
 
-interface GenreInterface extends Model {
+export interface GenreInterface extends Model {
+  id: number;
   name: string;
 }
 
@@ -22,7 +23,7 @@ module.exports = (sequelize: Sequelize) => {
     (db.genre as ModelStatic<GenreInterface>).belongsToMany(
       db.game as ModelStatic<Model>,
       {
-        through: "game_genres",
+        through: db.game_genres as ModelStatic<Model>,
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       }

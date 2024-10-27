@@ -64,7 +64,7 @@ module.exports = (sequelize: Sequelize) => {
     (db.game as ModelStatic<GameInterface>).belongsToMany(
       db.genre as ModelStatic<Model>,
       {
-        through: "game_genres",
+        through: db.game_genres as ModelStatic<Model>,
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       }

@@ -44,7 +44,7 @@ module.exports = (sequelize) => {
             onUpdate: "CASCADE",
         });
         db.game.belongsToMany(db.genre, {
-            through: "game_genres",
+            through: db.game_genres,
             onDelete: "CASCADE",
             onUpdate: "CASCADE",
         });
