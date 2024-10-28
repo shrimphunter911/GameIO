@@ -18,6 +18,7 @@ const sequelize_1 = require("sequelize");
 const lodash_1 = __importDefault(require("lodash"));
 const gameModel = Models_1.default.game;
 const game_genresModel = Models_1.default.game_genres;
+const genreModel = Models_1.default.genre;
 const ratingModel = Models_1.default.rating;
 const createGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -55,6 +56,9 @@ const getGames = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const page = parseInt(req.query.page) - 1 || 0;
         const limit = parseInt(req.query.limit) || 12;
         const offset = page * limit;
+        const genreId = req.query.genreId
+            ? parseInt(req.query.genreId)
+            : undefined;
         const search = req.query.search ? req.query.search : "";
         const publisher = req.query.publisher
             ? req.query.publisher
@@ -77,14 +81,39 @@ const getGames = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 [sequelize_1.Op.iLike]: `%${search}%`,
             } }, (releaseDateRange && { releaseDate: releaseDateRange })), (publisher && { publisher: { [sequelize_1.Op.iLike]: `%${publisher}%` } }));
         const games = yield gameModel.findAll({
-            attributes: ["title", [(0, sequelize_1.fn)("AVG", (0, sequelize_1.col)("ratings.rated")), "avg_rating"]],
+            where: whereConditions,
+            attributes: [
+                "id",
+                "title",
+                "description",
+                "releaseDate",
+                "publisher",
+                "imageUrl",
+                [(0, sequelize_1.fn)("AVG", (0, sequelize_1.col)("ratings.rated")), "avg_rating"],
+            ],
             include: [
                 {
                     model: ratingModel,
                     attributes: [],
                 },
+                {
+                    model: game_genresModel,
+                    required: true,
+                    attributes: [],
+                    include: [
+                        {
+                            model: genreModel,
+                            where: genreId ? { id: genreId } : undefined, // Apply filter by genreId here
+                            attributes: [],
+                        },
+                    ],
+                },
             ],
             group: ["game.id"],
+            order: [[(0, sequelize_1.fn)("AVG", (0, sequelize_1.col)("ratings.rated")), sortByRating]],
+            limit,
+            subQuery: false,
+            offset,
         });
         res.status(200).json(games);
     }

@@ -5,6 +5,7 @@ import _ from "lodash";
 
 const gameModel = db.game as ModelStatic<ModelWithAssociations>;
 const game_genresModel = db.game_genres as ModelStatic<ModelWithAssociations>;
+const genreModel = db.genre as ModelStatic<ModelWithAssociations>;
 const ratingModel = db.rating as ModelStatic<ModelWithAssociations>;
 
 export const createGame = async (req: Request, res: Response) => {
@@ -50,7 +51,9 @@ export const getGames = async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string) - 1 || 0;
     const limit = parseInt(req.query.limit as string) || 12;
     const offset = page * limit;
-
+    const genreId = req.query.genreId
+      ? parseInt(req.query.genreId as string)
+      : undefined;
     const search = req.query.search ? (req.query.search as string) : "";
     const publisher = req.query.publisher
       ? (req.query.publisher as string)
@@ -81,14 +84,39 @@ export const getGames = async (req: Request, res: Response) => {
     };
 
     const games = await gameModel.findAll({
-      attributes: ["title", [fn("AVG", col("ratings.rated")), "avg_rating"]],
+      where: whereConditions,
+      attributes: [
+        "id",
+        "title",
+        "description",
+        "releaseDate",
+        "publisher",
+        "imageUrl",
+        [fn("AVG", col("ratings.rated")), "avg_rating"],
+      ],
       include: [
         {
           model: ratingModel,
           attributes: [],
         },
+        {
+          model: game_genresModel,
+          required: true,
+          attributes: [],
+          include: [
+            {
+              model: genreModel,
+              where: genreId ? { id: genreId } : undefined, // Apply filter by genreId here
+              attributes: [],
+            },
+          ],
+        },
       ],
       group: ["game.id"],
+      order: [[fn("AVG", col("ratings.rated")), sortByRating]],
+      limit,
+      subQuery: false,
+      offset,
     });
 
     res.status(200).json(games);
