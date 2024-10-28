@@ -28,11 +28,7 @@ module.exports = (sequelize) => {
     });
     user.associate = (db) => {
         db.user.hasMany(db.game);
-        db.user.belongsToMany(db.game, {
-            through: db.rating,
-            onDelete: "CASCADE",
-            onUpdate: "CASCADE",
-        });
+        db.user.hasMany(db.rating);
     };
     return user;
 };

@@ -38,16 +38,8 @@ module.exports = (sequelize) => {
             onUpdate: "CASCADE",
             foreignKey: { allowNull: false },
         });
-        db.game.belongsToMany(db.user, {
-            through: db.rating,
-            onDelete: "CASCADE",
-            onUpdate: "CASCADE",
-        });
-        db.game.belongsToMany(db.genre, {
-            through: db.game_genres,
-            onDelete: "CASCADE",
-            onUpdate: "CASCADE",
-        });
+        db.game.hasMany(db.rating);
+        db.game.hasMany(db.game_genres);
     };
     return game;
 };

@@ -15,5 +15,23 @@ module.exports = (sequelize: Sequelize) => {
     associate: (db: DB) => void;
   };
 
+  rating.associate = (db) => {
+    (db.rating as ModelStatic<ModelWithAssociations>).belongsTo(
+      db.user as ModelStatic<ModelWithAssociations>,
+      {
+        onUpdate: "CASCADE",
+        foreignKey: { allowNull: false },
+      }
+    );
+
+    (db.rating as ModelStatic<ModelWithAssociations>).belongsTo(
+      db.game as ModelStatic<ModelWithAssociations>,
+      {
+        onUpdate: "CASCADE",
+        foreignKey: { allowNull: false },
+      }
+    );
+  };
+
   return rating;
 };

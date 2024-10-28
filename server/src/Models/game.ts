@@ -53,21 +53,11 @@ module.exports = (sequelize: Sequelize) => {
         foreignKey: { allowNull: false },
       }
     );
-    (db.game as ModelStatic<GameInterface>).belongsToMany(
-      db.user as ModelStatic<Model>,
-      {
-        through: db.rating as ModelStatic<Model>,
-        onDelete: "CASCADE",
-        onUpdate: "CASCADE",
-      }
+    (db.game as ModelStatic<ModelWithAssociations>).hasMany(
+      db.rating as ModelStatic<Model>
     );
-    (db.game as ModelStatic<GameInterface>).belongsToMany(
-      db.genre as ModelStatic<Model>,
-      {
-        through: db.game_genres as ModelStatic<Model>,
-        onDelete: "CASCADE",
-        onUpdate: "CASCADE",
-      }
+    (db.game as ModelStatic<ModelWithAssociations>).hasMany(
+      db.game_genres as ModelStatic<Model>
     );
   };
 

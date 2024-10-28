@@ -40,13 +40,8 @@ module.exports = (sequelize: Sequelize) => {
     (db.user as ModelStatic<ModelWithAssociations>).hasMany(
       db.game as ModelStatic<Model>
     );
-    (db.user as ModelStatic<UserInterface>).belongsToMany(
-      db.game as ModelStatic<Model>,
-      {
-        through: db.rating as ModelStatic<Model>,
-        onDelete: "CASCADE",
-        onUpdate: "CASCADE",
-      }
+    (db.user as ModelStatic<ModelWithAssociations>).hasMany(
+      db.rating as ModelStatic<Model>
     );
   };
 

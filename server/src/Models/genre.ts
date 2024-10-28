@@ -20,13 +20,8 @@ module.exports = (sequelize: Sequelize) => {
   };
 
   genre.associate = (db) => {
-    (db.genre as ModelStatic<GenreInterface>).belongsToMany(
-      db.game as ModelStatic<Model>,
-      {
-        through: db.game_genres as ModelStatic<Model>,
-        onDelete: "CASCADE",
-        onUpdate: "CASCADE",
-      }
+    (db.genre as ModelStatic<ModelWithAssociations>).hasMany(
+      db.game_genres as ModelStatic<Model>
     );
   };
 

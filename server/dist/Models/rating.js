@@ -8,5 +8,15 @@ module.exports = (sequelize) => {
             allowNull: false,
         },
     });
+    rating.associate = (db) => {
+        db.rating.belongsTo(db.user, {
+            onUpdate: "CASCADE",
+            foreignKey: { allowNull: false },
+        });
+        db.rating.belongsTo(db.game, {
+            onUpdate: "CASCADE",
+            foreignKey: { allowNull: false },
+        });
+    };
     return rating;
 };
