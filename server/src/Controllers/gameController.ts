@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import db from "../Models";
 import { Model, ModelStatic } from "sequelize";
 import _ from "lodash";
-import { GenreInterface } from "../Models/genre";
 
 const gameModel = db.game as ModelStatic<Model>;
 const game_genresModel = db.game_genres as ModelStatic<Model>;
