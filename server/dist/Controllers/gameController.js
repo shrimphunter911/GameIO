@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getGames = exports.createGame = void 0;
+exports.updateGame = exports.getGames = exports.createGame = void 0;
 const Models_1 = __importDefault(require("../Models"));
 const sequelize_1 = require("sequelize");
 const lodash_1 = __importDefault(require("lodash"));
@@ -103,7 +103,7 @@ const getGames = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                     include: [
                         {
                             model: genreModel,
-                            where: genreId ? { id: genreId } : undefined, // Apply filter by genreId here
+                            where: genreId ? { id: genreId } : undefined,
                             attributes: [],
                         },
                     ],
@@ -122,3 +122,37 @@ const getGames = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getGames = getGames;
+const updateGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const gameId = req.params.id;
+        const game = yield gameModel.findByPk(gameId);
+        if (!game) {
+            return res.status(404).send("Game not found");
+        }
+        if (game.userId !== req.user.id) {
+            return res.status(403).send("You are not authorized to update this game");
+        }
+        if (req.body.title && req.body.title !== game.title) {
+            const existingGame = yield gameModel.findOne({
+                where: { title: req.body.title },
+            });
+            if (existingGame) {
+                return res.status(400).send("Game with the same title already exists");
+            }
+        }
+        const updatedGame = yield game.update({
+            title: req.body.title || game.title,
+            description: req.body.description || game.description,
+            releaseDate: req.body.releaseDate
+                ? new Date(req.body.releaseDate).toISOString()
+                : game.releaseDate,
+            publisher: req.body.publisher || game.publisher,
+            imageUrl: req.body.imageUrl || game.imageUrl,
+        });
+        res.status(201).json(Object.assign(Object.assign({}, lodash_1.default.omit(updatedGame.dataValues, ["userId"])), { genres: req.body.genres }));
+    }
+    catch (error) {
+        res.status(500).send(error);
+    }
+});
+exports.updateGame = updateGame;

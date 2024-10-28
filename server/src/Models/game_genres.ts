@@ -15,6 +15,7 @@ module.exports = (sequelize: Sequelize) => {
     (db.game_genres as ModelStatic<ModelWithAssociations>).belongsTo(
       db.genre as ModelStatic<ModelWithAssociations>,
       {
+        onDelete: "CASCADE",
         onUpdate: "CASCADE",
         foreignKey: { allowNull: false },
       }
@@ -23,6 +24,7 @@ module.exports = (sequelize: Sequelize) => {
     (db.game_genres as ModelStatic<ModelWithAssociations>).belongsTo(
       db.game as ModelStatic<ModelWithAssociations>,
       {
+        onDelete: "CASCADE",
         onUpdate: "CASCADE",
         foreignKey: { allowNull: false },
       }

@@ -19,6 +19,7 @@ module.exports = (sequelize: Sequelize) => {
     (db.rating as ModelStatic<ModelWithAssociations>).belongsTo(
       db.user as ModelStatic<ModelWithAssociations>,
       {
+        onDelete: "CASCADE",
         onUpdate: "CASCADE",
         foreignKey: { allowNull: false },
       }
@@ -27,6 +28,7 @@ module.exports = (sequelize: Sequelize) => {
     (db.rating as ModelStatic<ModelWithAssociations>).belongsTo(
       db.game as ModelStatic<ModelWithAssociations>,
       {
+        onDelete: "CASCADE",
         onUpdate: "CASCADE",
         foreignKey: { allowNull: false },
       }

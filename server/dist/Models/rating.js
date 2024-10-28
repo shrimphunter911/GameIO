@@ -10,10 +10,12 @@ module.exports = (sequelize) => {
     });
     rating.associate = (db) => {
         db.rating.belongsTo(db.user, {
+            onDelete: "CASCADE",
             onUpdate: "CASCADE",
             foreignKey: { allowNull: false },
         });
         db.rating.belongsTo(db.game, {
+            onDelete: "CASCADE",
             onUpdate: "CASCADE",
             foreignKey: { allowNull: false },
         });

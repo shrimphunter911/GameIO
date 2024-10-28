@@ -1,4 +1,8 @@
-import { createGame, getGames } from "../Controllers/gameController";
+import {
+  createGame,
+  getGames,
+  updateGame,
+} from "../Controllers/gameController";
 import { getRating, postRating } from "../Controllers/ratingController";
 
 const auth = require("../Middlewares/auth");
@@ -8,6 +12,7 @@ const router = express.Router();
 
 router.post("/", auth, createGame);
 router.get("/", getGames);
+router.put("/:id", auth, updateGame);
 router.post("/:id/rating", auth, postRating);
 router.get("/:id/rating", auth, getRating);
 

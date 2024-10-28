@@ -1,13 +1,14 @@
 import { Sequelize, DataTypes, Model, ModelStatic } from "sequelize";
 import { DB, ModelWithAssociations } from "./index";
 
-interface GameInterface extends Model {
+export interface GameInterface extends ModelWithAssociations {
   id: number;
   title: string;
   description: string;
-  release_date: Date;
+  releaseDate: Date;
   publisher: string;
   imageUrl: string;
+  userId: number;
 }
 
 module.exports = (sequelize: Sequelize) => {
@@ -49,6 +50,7 @@ module.exports = (sequelize: Sequelize) => {
     (db.game as ModelStatic<ModelWithAssociations>).belongsTo(
       db.user as ModelStatic<ModelWithAssociations>,
       {
+        onDelete: "CASCADE",
         onUpdate: "CASCADE",
         foreignKey: { allowNull: false },
       }

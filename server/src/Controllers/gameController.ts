@@ -2,8 +2,9 @@ import { Request, Response } from "express";
 import db, { ModelWithAssociations } from "../Models";
 import { col, fn, ModelStatic, Op } from "sequelize";
 import _ from "lodash";
+import { GameInterface } from "../Models/game";
 
-const gameModel = db.game as ModelStatic<ModelWithAssociations>;
+const gameModel = db.game as ModelStatic<GameInterface>;
 const game_genresModel = db.game_genres as ModelStatic<ModelWithAssociations>;
 const genreModel = db.genre as ModelStatic<ModelWithAssociations>;
 const ratingModel = db.rating as ModelStatic<ModelWithAssociations>;
@@ -106,7 +107,7 @@ export const getGames = async (req: Request, res: Response) => {
           include: [
             {
               model: genreModel,
-              where: genreId ? { id: genreId } : undefined, // Apply filter by genreId here
+              where: genreId ? { id: genreId } : undefined,
               attributes: [],
             },
           ],
@@ -122,5 +123,46 @@ export const getGames = async (req: Request, res: Response) => {
     res.status(200).json(games);
   } catch (error) {
     res.status(404).send(error);
+  }
+};
+
+export const updateGame = async (req: Request, res: Response) => {
+  try {
+    const gameId = req.params.id;
+    const game = await gameModel.findByPk(gameId);
+
+    if (!game) {
+      return res.status(404).send("Game not found");
+    }
+
+    if (game.userId !== req.user.id) {
+      return res.status(403).send("You are not authorized to update this game");
+    }
+
+    if (req.body.title && req.body.title !== game.title) {
+      const existingGame = await gameModel.findOne({
+        where: { title: req.body.title },
+      });
+      if (existingGame) {
+        return res.status(400).send("Game with the same title already exists");
+      }
+    }
+
+    const updatedGame = await game.update({
+      title: req.body.title || game.title,
+      description: req.body.description || game.description,
+      releaseDate: req.body.releaseDate
+        ? new Date(req.body.releaseDate).toISOString()
+        : game.releaseDate,
+      publisher: req.body.publisher || game.publisher,
+      imageUrl: req.body.imageUrl || game.imageUrl,
+    });
+
+    res.status(201).json({
+      ..._.omit(updatedGame.dataValues, ["userId"]),
+      genres: req.body.genres,
+    });
+  } catch (error) {
+    res.status(500).send(error);
   }
 };

@@ -35,6 +35,7 @@ module.exports = (sequelize) => {
     });
     game.associate = (db) => {
         db.game.belongsTo(db.user, {
+            onDelete: "CASCADE",
             onUpdate: "CASCADE",
             foreignKey: { allowNull: false },
         });
