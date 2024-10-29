@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateGame = exports.getGames = exports.createGame = void 0;
+exports.getGame = exports.updateGame = exports.getGames = exports.createGame = void 0;
 const Models_1 = __importDefault(require("../Models"));
 const sequelize_1 = require("sequelize");
 const lodash_1 = __importDefault(require("lodash"));
@@ -90,6 +90,14 @@ const getGames = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 "publisher",
                 "imageUrl",
                 [(0, sequelize_1.fn)("AVG", (0, sequelize_1.col)("ratings.rated")), "avg_rating"],
+                [
+                    (0, sequelize_1.literal)(`(
+            SELECT ARRAY_AGG("genreId")
+            FROM "game_genres" AS "game_genres"
+            WHERE "game_genres"."gameId" = "game"."id"
+          )`),
+                    "genreIds",
+                ],
             ],
             include: [
                 {
@@ -156,3 +164,41 @@ const updateGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.updateGame = updateGame;
+const getGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const gameId = req.params.id;
+        let game = yield gameModel.findOne({
+            where: { id: gameId },
+            attributes: [
+                "id",
+                "title",
+                "description",
+                "releaseDate",
+                "publisher",
+                "imageUrl",
+                [(0, sequelize_1.fn)("AVG", (0, sequelize_1.col)("ratings.rated")), "avg_rating"],
+            ],
+            include: [
+                {
+                    model: ratingModel,
+                    attributes: [],
+                },
+            ],
+            group: ["game.id"],
+        });
+        if (!game) {
+            return res.status(404).send("Game not found");
+        }
+        let genres = yield game_genresModel.findAll({
+            where: {
+                gameId: gameId,
+            },
+        });
+        let genreIds = genres.map((genre) => genre.genreId);
+        res.status(200).json(Object.assign(Object.assign({}, lodash_1.default.omit(game.dataValues, ["userId"])), { genreIds }));
+    }
+    catch (error) {
+        res.status(400).send(error);
+    }
+});
+exports.getGame = getGame;

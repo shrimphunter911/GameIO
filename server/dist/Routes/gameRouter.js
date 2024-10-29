@@ -7,6 +7,7 @@ const express = require("express");
 const router = express.Router();
 router.post("/", auth, gameController_1.createGame);
 router.get("/", gameController_1.getGames);
+router.get("/:id", gameController_1.getGame);
 router.put("/:id", auth, gameController_1.updateGame);
 router.post("/:id/rating", auth, ratingController_1.postRating);
 router.get("/:id/rating", auth, ratingController_1.getRating);

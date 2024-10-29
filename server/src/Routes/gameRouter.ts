@@ -1,5 +1,6 @@
 import {
   createGame,
+  getGame,
   getGames,
   updateGame,
 } from "../Controllers/gameController";
@@ -12,6 +13,7 @@ const router = express.Router();
 
 router.post("/", auth, createGame);
 router.get("/", getGames);
+router.get("/:id", getGame);
 router.put("/:id", auth, updateGame);
 router.post("/:id/rating", auth, postRating);
 router.get("/:id/rating", auth, getRating);

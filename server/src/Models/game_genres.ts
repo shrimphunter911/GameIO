@@ -1,13 +1,15 @@
 import { Sequelize, DataTypes, Model, ModelStatic } from "sequelize";
 import { DB, ModelWithAssociations } from "./index";
 
-interface GameGanres extends Model {}
+export interface GameGanresInterface extends ModelWithAssociations {
+  genreId: number;
+}
 
 module.exports = (sequelize: Sequelize) => {
-  const game_genres = sequelize.define<GameGanres>(
+  const game_genres = sequelize.define<GameGanresInterface>(
     "game_genres",
     {}
-  ) as ModelStatic<GameGanres> & {
+  ) as ModelStatic<GameGanresInterface> & {
     associate: (db: DB) => void;
   };
 

@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
 import db, { ModelWithAssociations } from "../Models";
-import { col, fn, ModelStatic, Op } from "sequelize";
+import { col, fn, literal, ModelStatic, Op } from "sequelize";
 import _ from "lodash";
 import { GameInterface } from "../Models/game";
+import { GameGanresInterface } from "../Models/game_genres";
 
 const gameModel = db.game as ModelStatic<GameInterface>;
-const game_genresModel = db.game_genres as ModelStatic<ModelWithAssociations>;
+const game_genresModel = db.game_genres as ModelStatic<GameGanresInterface>;
 const genreModel = db.genre as ModelStatic<ModelWithAssociations>;
 const ratingModel = db.rating as ModelStatic<ModelWithAssociations>;
 
@@ -94,6 +95,14 @@ export const getGames = async (req: Request, res: Response) => {
         "publisher",
         "imageUrl",
         [fn("AVG", col("ratings.rated")), "avg_rating"],
+        [
+          literal(`(
+            SELECT ARRAY_AGG("genreId")
+            FROM "game_genres" AS "game_genres"
+            WHERE "game_genres"."gameId" = "game"."id"
+          )`),
+          "genreIds",
+        ],
       ],
       include: [
         {
@@ -164,5 +173,49 @@ export const updateGame = async (req: Request, res: Response) => {
     });
   } catch (error) {
     res.status(500).send(error);
+  }
+};
+
+export const getGame = async (req: Request, res: Response) => {
+  try {
+    const gameId = req.params.id;
+    let game = await gameModel.findOne({
+      where: { id: gameId },
+      attributes: [
+        "id",
+        "title",
+        "description",
+        "releaseDate",
+        "publisher",
+        "imageUrl",
+        [fn("AVG", col("ratings.rated")), "avg_rating"],
+      ],
+      include: [
+        {
+          model: ratingModel,
+          attributes: [],
+        },
+      ],
+      group: ["game.id"],
+    });
+
+    if (!game) {
+      return res.status(404).send("Game not found");
+    }
+
+    let genres = await game_genresModel.findAll({
+      where: {
+        gameId: gameId,
+      },
+    });
+
+    let genreIds = genres.map((genre) => genre.genreId);
+
+    res.status(200).json({
+      ..._.omit(game.dataValues, ["userId"]),
+      genreIds,
+    });
+  } catch (error) {
+    res.status(400).send(error);
   }
 };
