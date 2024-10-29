@@ -13,27 +13,39 @@ import theme from "./theme";
 import "./index.css";
 import Login from "./Components/Login";
 import SignUp from "./Components/SignUp";
-
+import ProtectedRoute from "./Routes/protectedRoute";
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
-    children: [
-      {
-        path: "/login",
-        element: <Login />,
-      },
-      {
-        path: "/signup",
-        element: <SignUp />,
-      },
-    ],
     errorElement: (
       <Alert borderRadius={10} status="error">
         <AlertIcon />
         <AlertTitle>404 Not Found</AlertTitle>
       </Alert>
     ),
+    children: [
+      {
+        path: "/login",
+        element: <ProtectedRoute />,
+        children: [
+          {
+            path: "/login",
+            element: <Login />,
+          },
+        ],
+      },
+      {
+        path: "/signup",
+        element: <ProtectedRoute />,
+        children: [
+          {
+            path: "/signup",
+            element: <SignUp />,
+          },
+        ],
+      },
+    ],
   },
 ]);
 
