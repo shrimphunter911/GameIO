@@ -13,8 +13,12 @@ import {
 import { FormEvent, useState } from "react";
 import { creatUser } from "../Services/createUser";
 import { Link } from "react-router-dom";
+import { useUserContext } from "../Contexts/userContext";
+import Cookies from "universal-cookie";
 
 const SignUp = () => {
+  const cookies = new Cookies();
+  const { setUser } = useUserContext();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -37,7 +41,11 @@ const SignUp = () => {
 
     if (isFormValid) {
       try {
-        await creatUser(formData);
+        const response = await creatUser(formData);
+        setUser(response);
+        const date = new Date();
+        date.setDate(date.getDate() + 3);
+        cookies.set("x-auth-token", response, { expires: date });
         setFormData({ name: "", email: "", password: "" });
       } catch (err: any) {
         setError(err.message);

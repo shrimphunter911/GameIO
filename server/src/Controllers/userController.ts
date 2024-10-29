@@ -18,10 +18,7 @@ export const signup = async (req: Request, res: Response) => {
     reqBody.password = await bcrypt.hash(reqBody.password, salt);
     user = await userModel.create(reqBody);
     const token = jwt.sign({ id: user.get("id") }, config.get("jwtPrivateKey"));
-    res
-      .header("x-auth-token", token)
-      .status(200)
-      .json(_.pick(user, ["name", "email"]));
+    res.status(200).send(token);
   } catch (error) {
     res.status(400).send(error);
   }

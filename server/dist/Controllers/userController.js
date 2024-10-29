@@ -29,10 +29,7 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         reqBody.password = yield bcrypt.hash(reqBody.password, salt);
         user = yield userModel.create(reqBody);
         const token = jwt.sign({ id: user.get("id") }, config.get("jwtPrivateKey"));
-        res
-            .header("x-auth-token", token)
-            .status(200)
-            .json(lodash_1.default.pick(user, ["name", "email"]));
+        res.status(200).send(token);
     }
     catch (error) {
         res.status(400).send(error);
