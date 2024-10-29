@@ -37,8 +37,7 @@ const SignUp = () => {
 
     if (isFormValid) {
       try {
-        const data = await creatUser(formData);
-        console.log("Signup successful:", data);
+        await creatUser(formData);
         setFormData({ name: "", email: "", password: "" });
       } catch (err: any) {
         setError(err.message);

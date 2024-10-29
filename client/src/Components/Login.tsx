@@ -14,8 +14,10 @@ import { FormEvent, useState } from "react";
 import { loginUser } from "../Services/authUser";
 import { Link } from "react-router-dom";
 import { useUserContext } from "../Contexts/userContext";
+import Cookies from "universal-cookie";
 
 const Login = () => {
+  const cookies = new Cookies();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -37,9 +39,11 @@ const Login = () => {
     if (isFormValid) {
       try {
         const response = await loginUser(formData);
-        setUser(response.data);
+        setUser(response);
+        const date = new Date();
+        date.setDate(date.getDate() + 3);
+        cookies.set("x-auth-token", response, { expires: date });
         setFormData({ email: "", password: "" });
-        console.log("Login successful, token received:", response.data);
       } catch (err) {
         setError("Login failed. Please try again.");
         setIsError(true);
