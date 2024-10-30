@@ -1,4 +1,4 @@
-import { genresAction, genresState } from "../Interfaces/GenresState";
+import { genresAction, genresState } from "../Interfaces/genresState";
 
 export const genresReducer = (state: genresState, action: genresAction) => {
   const { type, payload } = action;

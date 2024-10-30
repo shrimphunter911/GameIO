@@ -1,5 +1,5 @@
 import { createContext, Dispatch, useContext } from "react";
-import { genresAction, genresState } from "../Interfaces/GenresState";
+import { genresAction, genresState } from "../Interfaces/genresState";
 
 interface GenressContextType {
   genresState: genresState;

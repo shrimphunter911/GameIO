@@ -1,4 +1,4 @@
-import { Button, HStack, Input } from "@chakra-ui/react";
+import { Button, HStack, Input, Box } from "@chakra-ui/react";
 import ColorModeSwitch from "./ColorModeSwitch";
 import { Link } from "react-router-dom";
 import { useUserContext } from "../Contexts/userContext";
@@ -7,10 +7,13 @@ import { House, LogOut, Search } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { searchGames } from "../Services/searchGames";
 import { useGamesContext } from "../Contexts/gamesContext";
+import AdvancedSearchDrawer from "./AdvancedSearch";
+import { useGenresContext } from "../Contexts/genresContext";
 
 const NavBar = () => {
   const cookies = new Cookies();
   const { userState, userDispatch } = useUserContext();
+  const { genresState } = useGenresContext();
   const { gamesDispatch } = useGamesContext();
   const [error, setError] = useState("");
   const [input, setInput] = useState({
@@ -20,6 +23,8 @@ const NavBar = () => {
     releaseDate: "",
     sortByRating: "",
   });
+
+  const genres = genresState.genres;
 
   const handleSearchButton = async (e: FormEvent) => {
     e.preventDefault();
@@ -38,8 +43,14 @@ const NavBar = () => {
     }
   };
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setInput({ ...input, [event.target.id]: event.target.value });
+  };
+
+  const handleSortChange = (sort: "asc" | "desc") => {
+    setInput({ ...input, sortByRating: sort });
   };
 
   const handleLogout = () => {
@@ -60,15 +71,24 @@ const NavBar = () => {
           <House />
         </Button>
       </Link>
-      <Input
-        placeholder="Search"
-        variant="outline"
-        type="text"
-        id="search"
-        value={input.search}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-      />
+      <Box position="relative" width="100%">
+        <Input
+          placeholder="Search"
+          variant="outline"
+          type="text"
+          id="search"
+          value={input.search}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          pr="40px"
+        />
+        <AdvancedSearchDrawer
+          input={input}
+          onChange={handleChange}
+          onSortChange={handleSortChange}
+          genres={genres}
+        />
+      </Box>
       <Button onClick={handleSearchButton}>
         <Search />
       </Button>
