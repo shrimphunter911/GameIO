@@ -18,7 +18,7 @@ import Cookies from "universal-cookie";
 
 const SignUp = () => {
   const cookies = new Cookies();
-  const { setUser } = useUserContext();
+  const { userDispatch } = useUserContext();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -42,7 +42,7 @@ const SignUp = () => {
     if (isFormValid) {
       try {
         const response = await creatUser(formData);
-        setUser(response);
+        userDispatch({ type: "login", payload: response });
         const date = new Date();
         date.setDate(date.getDate() + 3);
         cookies.set("x-auth-token", response, { expires: date });

@@ -6,11 +6,11 @@ import Cookies from "universal-cookie";
 
 const NavBar = () => {
   const cookies = new Cookies();
-  const { user, setUser } = useUserContext();
+  const { userState, userDispatch } = useUserContext();
 
   const handleLogout = () => {
     cookies.remove("x-auth-token");
-    setUser("");
+    userDispatch({ type: "logout", payload: "" });
   };
 
   return (
@@ -19,7 +19,7 @@ const NavBar = () => {
         <Button>Home</Button>
       </Link>
       <ColorModeSwitch />
-      {user ? (
+      {userState.token ? (
         <Button onClick={handleLogout}>Logout</Button>
       ) : (
         <Link to="/login">

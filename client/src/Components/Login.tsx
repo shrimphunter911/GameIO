@@ -24,7 +24,7 @@ const Login = () => {
   });
   const [error, setError] = useState("");
   const [isError, setIsError] = useState(false);
-  const { setUser } = useUserContext();
+  const { userDispatch } = useUserContext();
 
   const isEmailValid = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -39,7 +39,7 @@ const Login = () => {
     if (isFormValid) {
       try {
         const response = await loginUser(formData);
-        setUser(response);
+        userDispatch({ type: "login", payload: response });
         const date = new Date();
         date.setDate(date.getDate() + 3);
         cookies.set("x-auth-token", response, { expires: date });
