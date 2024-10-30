@@ -4,6 +4,7 @@ import {
   getGames,
   updateGame,
 } from "../Controllers/gameController";
+import { getGenres } from "../Controllers/genreController";
 import { getRating, postRating } from "../Controllers/ratingController";
 
 const auth = require("../Middlewares/auth");
@@ -13,6 +14,7 @@ const router = express.Router();
 
 router.post("/", auth, createGame);
 router.get("/", getGames);
+router.get("/genres", getGenres);
 router.get("/:id", getGame);
 router.put("/:id", auth, updateGame);
 router.post("/:id/rating", auth, postRating);
