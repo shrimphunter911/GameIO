@@ -1,5 +1,5 @@
 import { createContext, Dispatch, useContext } from "react";
-import { userAction, userState } from "../App";
+import { userAction, userState } from "../Interfaces/userState";
 
 interface UserContextType {
   userState: userState;

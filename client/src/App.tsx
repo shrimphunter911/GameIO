@@ -4,28 +4,7 @@ import { Outlet } from "react-router-dom";
 import { useEffect, useReducer } from "react";
 import { UserContext } from "./Contexts/userContext";
 import Cookies from "universal-cookie";
-
-export interface userState {
-  token: string;
-}
-
-export interface userAction {
-  type: "login" | "logout";
-  payload: string;
-}
-
-const userReducer = (state: userState, action: userAction) => {
-  const { type, payload } = action;
-
-  switch (type) {
-    case "login":
-      return { ...state, token: payload };
-    case "logout":
-      return { ...state, token: "" };
-    default:
-      return state;
-  }
-};
+import { userReducer } from "./Reducers/userReducer";
 
 const App = () => {
   const cookies = new Cookies();
