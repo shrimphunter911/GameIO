@@ -1,12 +1,15 @@
-import { HStack, Switch, Text, useColorMode } from "@chakra-ui/react";
+import { Button, HStack, useColorMode } from "@chakra-ui/react";
+import { SunMoon } from "lucide-react";
 
 const ColorModeSwitch = () => {
-  const { toggleColorMode, colorMode } = useColorMode();
+  const { toggleColorMode } = useColorMode();
 
   return (
     <HStack>
-      <Switch isChecked={colorMode === "dark"} onChange={toggleColorMode} />
-      <Text>Dark Mode</Text>
+      <Button onClick={toggleColorMode}>
+        {" "}
+        <SunMoon />
+      </Button>
     </HStack>
   );
 };

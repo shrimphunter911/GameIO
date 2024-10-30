@@ -22,7 +22,9 @@ import {
 import { Game } from "../Interfaces/game";
 import fetchGame from "../Services/fetchGame";
 import Rating from "./Rating";
+import { useGenresContext } from "../Contexts/genresContext";
 const GameView = () => {
+  const { genresState } = useGenresContext();
   const params = useParams<{ gameId: string }>();
   const [game, setGame] = useState<Game>();
   const [err, setError] = useState("");
@@ -50,6 +52,16 @@ const GameView = () => {
       month: "long",
       year: "numeric",
     });
+  };
+
+  const getGenres = (genreIds: number[]) => {
+    const genreNames = genresState.genres.map((genre) => {
+      if (genreIds.includes(genre.id)) {
+        return genre.name;
+      }
+    });
+
+    return genreNames;
   };
 
   return (
@@ -124,10 +136,10 @@ const GameView = () => {
                   </Text>
 
                   <List spacing={2}>
-                    {game?.genreIds.map((id) => (
+                    {getGenres(game?.genreIds).map((genre) => (
                       <ListItem>
                         <Text as={"span"} fontWeight={"bold"}>
-                          {id}
+                          {genre}
                         </Text>
                       </ListItem>
                     ))}

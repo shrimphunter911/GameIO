@@ -1,5 +1,5 @@
 import { FaStar, FaStarHalfAlt } from "react-icons/fa";
-import { Box, HStack, Text } from "@chakra-ui/react";
+import { Box, HStack } from "@chakra-ui/react";
 
 interface RatingProps {
   value: number;
