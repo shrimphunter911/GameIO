@@ -1,4 +1,4 @@
-import { Button, HStack } from "@chakra-ui/react";
+import { Button, HStack, Input } from "@chakra-ui/react";
 import ColorModeSwitch from "./ColorModeSwitch";
 import { Link } from "react-router-dom";
 import { useUserContext } from "../Contexts/userContext";
@@ -18,6 +18,7 @@ const NavBar = () => {
       <Link to="/">
         <Button>Home</Button>
       </Link>
+      <Input placeholder="Search" variant="outline" />
       <ColorModeSwitch />
       {userState.token ? (
         <Button onClick={handleLogout}>Logout</Button>

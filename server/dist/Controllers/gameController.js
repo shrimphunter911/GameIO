@@ -89,7 +89,7 @@ const getGames = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 "releaseDate",
                 "publisher",
                 "imageUrl",
-                [(0, sequelize_1.fn)("AVG", (0, sequelize_1.col)("ratings.rated")), "avg_rating"],
+                [(0, sequelize_1.literal)("ROUND(AVG(ratings.rated), 2)"), "avg_rating"],
                 [
                     (0, sequelize_1.literal)(`(
             SELECT ARRAY_AGG("genreId")
@@ -118,7 +118,7 @@ const getGames = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 },
             ],
             group: ["game.id"],
-            order: [[(0, sequelize_1.fn)("AVG", (0, sequelize_1.col)("ratings.rated")), sortByRating]],
+            order: [[(0, sequelize_1.literal)("ROUND(AVG(ratings.rated), 2)"), sortByRating]],
             limit,
             subQuery: false,
             offset,

@@ -94,7 +94,7 @@ export const getGames = async (req: Request, res: Response) => {
         "releaseDate",
         "publisher",
         "imageUrl",
-        [fn("AVG", col("ratings.rated")), "avg_rating"],
+        [literal("ROUND(AVG(ratings.rated), 2)"), "avg_rating"],
         [
           literal(`(
             SELECT ARRAY_AGG("genreId")
@@ -123,7 +123,7 @@ export const getGames = async (req: Request, res: Response) => {
         },
       ],
       group: ["game.id"],
-      order: [[fn("AVG", col("ratings.rated")), sortByRating]],
+      order: [[literal("ROUND(AVG(ratings.rated), 2)"), sortByRating]],
       limit,
       subQuery: false,
       offset,

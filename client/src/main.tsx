@@ -14,6 +14,8 @@ import "./index.css";
 import Login from "./Components/Login";
 import SignUp from "./Components/SignUp";
 import ProtectedRoute from "./Routes/protectedRoute";
+import GameGrid from "./Components/GameGrid";
+import GameView from "./Components/GameView";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -25,6 +27,14 @@ const router = createBrowserRouter([
       </Alert>
     ),
     children: [
+      {
+        path: "/",
+        element: <GameGrid />,
+      },
+      {
+        path: "/games/:gameId",
+        element: <GameView />,
+      },
       {
         path: "/login",
         element: <ProtectedRoute />,
