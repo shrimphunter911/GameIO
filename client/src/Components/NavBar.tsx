@@ -3,7 +3,7 @@ import ColorModeSwitch from "./ColorModeSwitch";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserContext } from "../Contexts/userContext";
 import Cookies from "universal-cookie";
-import { CirclePlus, House, LogOut, Search } from "lucide-react";
+import { CirclePlus, House, Library, LogOut, Search } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { searchGames } from "../Services/searchGames";
 import { useGamesContext } from "../Contexts/gamesContext";
@@ -32,13 +32,6 @@ const NavBar = () => {
     try {
       const response = await searchGames(input);
       gamesDispatch({ type: "setGames", payload: response });
-      setInput({
-        search: "",
-        genreId: "",
-        publisher: "",
-        releaseDate: "",
-        sortByRating: "",
-      });
     } catch (error: any) {
       setError(error);
     }
@@ -97,6 +90,11 @@ const NavBar = () => {
       <ColorModeSwitch />
       {userState.token ? (
         <>
+          <Link to="/games/mygames">
+            <Button>
+              <Library />
+            </Button>
+          </Link>
           <Link to="/games/post">
             <Button>
               <CirclePlus />

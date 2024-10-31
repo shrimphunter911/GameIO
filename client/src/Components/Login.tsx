@@ -39,10 +39,10 @@ const Login = () => {
     if (isFormValid) {
       try {
         const response = await loginUser(formData);
-        userDispatch({ type: "login", payload: response });
         const date = new Date();
         date.setDate(date.getDate() + 3);
         await cookies.set("x-auth-token", response, { expires: date });
+        userDispatch({ type: "login", payload: response });
         setFormData({ email: "", password: "" });
       } catch (err) {
         setError("Login failed. Please try again.");

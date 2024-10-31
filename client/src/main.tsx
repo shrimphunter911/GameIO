@@ -18,6 +18,7 @@ import GameGrid from "./Components/GameGrid";
 import GameView from "./Components/GameView";
 import PostGame from "./Components/PostGame";
 import GameProtectedRoute from "./Routes/gameProtectedRoute";
+import MyGames from "./Components/MyGames";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -32,6 +33,14 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <GameGrid />,
+      },
+      {
+        path: "/games/mygames",
+        element: (
+          <GameProtectedRoute>
+            <MyGames />
+          </GameProtectedRoute>
+        ),
       },
       {
         path: "/games/post",

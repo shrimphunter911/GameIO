@@ -42,10 +42,10 @@ const SignUp = () => {
     if (isFormValid) {
       try {
         const response = await createUser(formData);
-        userDispatch({ type: "login", payload: response });
         const date = new Date();
         date.setDate(date.getDate() + 3);
         await cookies.set("x-auth-token", response, { expires: date });
+        userDispatch({ type: "login", payload: response });
         setFormData({ name: "", email: "", password: "" });
       } catch (err: any) {
         setError(err.message);
