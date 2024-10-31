@@ -14,6 +14,7 @@ const router = express.Router();
 
 router.post("/", auth, createGame);
 router.get("/", getGames);
+router.get("/mygames", auth, getGames);
 router.get("/genres", getGenres);
 router.get("/:id", getGame);
 router.put("/:id", auth, updateGame);

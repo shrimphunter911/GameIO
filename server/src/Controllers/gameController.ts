@@ -49,6 +49,7 @@ export const createGame = async (req: Request, res: Response) => {
 };
 
 export const getGames = async (req: Request, res: Response) => {
+  const userId = req.user ? req.user.id : null;
   try {
     const page = parseInt(req.query.page as string) - 1 || 0;
     const limit = parseInt(req.query.limit as string) || 12;
@@ -77,6 +78,7 @@ export const getGames = async (req: Request, res: Response) => {
         }
       : undefined;
 
+    // Define the base where conditions
     const whereConditions: any = {
       title: {
         [Op.iLike]: `%${search}%`,
@@ -84,6 +86,11 @@ export const getGames = async (req: Request, res: Response) => {
       ...(releaseDateRange && { releaseDate: releaseDateRange }),
       ...(publisher && { publisher: { [Op.iLike]: `%${publisher}%` } }),
     };
+
+    // Check if req.user is present to filter by userId for the /userGames route
+    if (userId) {
+      whereConditions.userId = userId;
+    }
 
     const games = await gameModel.findAll({
       where: whereConditions,

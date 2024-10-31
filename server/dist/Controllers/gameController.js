@@ -52,6 +52,7 @@ const createGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 });
 exports.createGame = createGame;
 const getGames = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.user ? req.user.id : null;
     try {
         const page = parseInt(req.query.page) - 1 || 0;
         const limit = parseInt(req.query.limit) || 12;
@@ -77,9 +78,14 @@ const getGames = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 ],
             }
             : undefined;
+        // Define the base where conditions
         const whereConditions = Object.assign(Object.assign({ title: {
                 [sequelize_1.Op.iLike]: `%${search}%`,
             } }, (releaseDateRange && { releaseDate: releaseDateRange })), (publisher && { publisher: { [sequelize_1.Op.iLike]: `%${publisher}%` } }));
+        // Check if req.user is present to filter by userId for the /userGames route
+        if (userId) {
+            whereConditions.userId = userId;
+        }
         const games = yield gameModel.findAll({
             where: whereConditions,
             attributes: [

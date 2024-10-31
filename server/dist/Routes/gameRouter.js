@@ -8,6 +8,7 @@ const express = require("express");
 const router = express.Router();
 router.post("/", auth, gameController_1.createGame);
 router.get("/", gameController_1.getGames);
+router.get("/mygames", auth, gameController_1.getGames);
 router.get("/genres", genreController_1.getGenres);
 router.get("/:id", gameController_1.getGame);
 router.put("/:id", auth, gameController_1.updateGame);
