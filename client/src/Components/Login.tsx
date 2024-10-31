@@ -42,7 +42,7 @@ const Login = () => {
         userDispatch({ type: "login", payload: response });
         const date = new Date();
         date.setDate(date.getDate() + 3);
-        cookies.set("x-auth-token", response, { expires: date });
+        await cookies.set("x-auth-token", response, { expires: date });
         setFormData({ email: "", password: "" });
       } catch (err) {
         setError("Login failed. Please try again.");

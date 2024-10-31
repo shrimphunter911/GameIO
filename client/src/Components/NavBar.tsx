@@ -1,9 +1,9 @@
 import { Button, HStack, Input, Box } from "@chakra-ui/react";
 import ColorModeSwitch from "./ColorModeSwitch";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useUserContext } from "../Contexts/userContext";
 import Cookies from "universal-cookie";
-import { House, LogOut, Search } from "lucide-react";
+import { CirclePlus, House, LogOut, Search } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { searchGames } from "../Services/searchGames";
 import { useGamesContext } from "../Contexts/gamesContext";
@@ -11,6 +11,7 @@ import AdvancedSearchDrawer from "./AdvancedSearch";
 import { useGenresContext } from "../Contexts/genresContext";
 
 const NavBar = () => {
+  const navigate = useNavigate();
   const cookies = new Cookies();
   const { userState, userDispatch } = useUserContext();
   const { genresState } = useGenresContext();
@@ -53,9 +54,10 @@ const NavBar = () => {
     setInput({ ...input, sortByRating: sort });
   };
 
-  const handleLogout = () => {
-    cookies.remove("x-auth-token");
+  const handleLogout = async () => {
+    await cookies.remove("x-auth-token");
     userDispatch({ type: "logout", payload: "" });
+    navigate("/");
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -94,9 +96,16 @@ const NavBar = () => {
       </Button>
       <ColorModeSwitch />
       {userState.token ? (
-        <Button onClick={handleLogout}>
-          <LogOut />
-        </Button>
+        <>
+          <Link to="/games/post">
+            <Button>
+              <CirclePlus />
+            </Button>
+          </Link>
+          <Button onClick={handleLogout}>
+            <LogOut />
+          </Button>
+        </>
       ) : (
         <Link to="/login">
           <Button colorScheme="orange">Login</Button>

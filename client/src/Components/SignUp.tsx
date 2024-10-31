@@ -45,7 +45,7 @@ const SignUp = () => {
         userDispatch({ type: "login", payload: response });
         const date = new Date();
         date.setDate(date.getDate() + 3);
-        cookies.set("x-auth-token", response, { expires: date });
+        await cookies.set("x-auth-token", response, { expires: date });
         setFormData({ name: "", email: "", password: "" });
       } catch (err: any) {
         setError(err.message);

@@ -17,6 +17,7 @@ import ProtectedRoute from "./Routes/protectedRoute";
 import GameGrid from "./Components/GameGrid";
 import GameView from "./Components/GameView";
 import PostGame from "./Components/PostGame";
+import GameProtectedRoute from "./Routes/gameProtectedRoute";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -29,12 +30,16 @@ const router = createBrowserRouter([
     ),
     children: [
       {
-        path: "/games/post",
-        element: <PostGame />,
-      },
-      {
         path: "/",
         element: <GameGrid />,
+      },
+      {
+        path: "/games/post",
+        element: (
+          <GameProtectedRoute>
+            <PostGame />
+          </GameProtectedRoute>
+        ),
       },
       {
         path: "/games/:gameId",
@@ -42,23 +47,19 @@ const router = createBrowserRouter([
       },
       {
         path: "/login",
-        element: <ProtectedRoute />,
-        children: [
-          {
-            path: "/login",
-            element: <Login />,
-          },
-        ],
+        element: (
+          <ProtectedRoute>
+            <Login />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/signup",
-        element: <ProtectedRoute />,
-        children: [
-          {
-            path: "/signup",
-            element: <SignUp />,
-          },
-        ],
+        element: (
+          <ProtectedRoute>
+            <SignUp />
+          </ProtectedRoute>
+        ),
       },
     ],
   },
