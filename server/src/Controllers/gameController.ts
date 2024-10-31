@@ -26,7 +26,7 @@ export const createGame = async (req: Request, res: Response) => {
       userId: userId,
     });
 
-    let givenGenres = req.body.genres;
+    let givenGenres = req.body.genreIds;
 
     if (givenGenres.length === 0) {
       return res.status(400).send("No genre given");
@@ -41,7 +41,7 @@ export const createGame = async (req: Request, res: Response) => {
 
     res.status(201).json({
       ..._.omit(game.dataValues, ["userId"]),
-      genres: givenGenres,
+      genreIds: givenGenres,
     });
   } catch (error) {
     res.status(404).send(error);

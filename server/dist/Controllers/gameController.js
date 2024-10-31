@@ -35,7 +35,7 @@ const createGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             imageUrl: req.body.imageUrl,
             userId: userId,
         });
-        let givenGenres = req.body.genres;
+        let givenGenres = req.body.genreIds;
         if (givenGenres.length === 0) {
             return res.status(400).send("No genre given");
         }
@@ -44,7 +44,7 @@ const createGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             genreId: genreId,
         }));
         yield game_genresModel.bulkCreate(gameGenres);
-        res.status(201).json(Object.assign(Object.assign({}, lodash_1.default.omit(game.dataValues, ["userId"])), { genres: givenGenres }));
+        res.status(201).json(Object.assign(Object.assign({}, lodash_1.default.omit(game.dataValues, ["userId"])), { genreIds: givenGenres }));
     }
     catch (error) {
         res.status(404).send(error);
