@@ -1,6 +1,6 @@
 import apiClient from "./api-client";
 
-export const creatUser = async (formData: {
+export const createUser = async (formData: {
   name: string;
   email: string;
   password: string;

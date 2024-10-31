@@ -11,7 +11,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { FormEvent, useState } from "react";
-import { creatUser } from "../Services/createUser";
+import { createUser } from "../Services/createUser";
 import { Link } from "react-router-dom";
 import { useUserContext } from "../Contexts/userContext";
 import Cookies from "universal-cookie";
@@ -41,7 +41,7 @@ const SignUp = () => {
 
     if (isFormValid) {
       try {
-        const response = await creatUser(formData);
+        const response = await createUser(formData);
         userDispatch({ type: "login", payload: response });
         const date = new Date();
         date.setDate(date.getDate() + 3);
