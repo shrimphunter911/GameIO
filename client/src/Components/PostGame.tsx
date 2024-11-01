@@ -1,19 +1,32 @@
 import React, { FormEvent, useState } from "react";
 import Select from "react-select";
-import { Alert, AlertIcon, AlertTitle } from "@chakra-ui/react";
+import {
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  Box,
+  Button,
+  Container,
+  Flex,
+  FormControl,
+  Heading,
+  Input,
+  Textarea,
+  VStack,
+} from "@chakra-ui/react";
 import { useGenresContext } from "../Contexts/genresContext";
 import { Game } from "../Interfaces/game";
 import { useGamesContext } from "../Contexts/gamesContext";
 import { createGame } from "../Services/createGame";
 import { useUserContext } from "../Contexts/userContext";
-import "./PostGame.css";
+import UploadWidget from "./UploadWidget";
 
 interface GenreOption {
   value: number;
   label: string;
 }
 
-const PostGame = () => {
+export default function PostGame() {
   const { userState } = useUserContext();
   const { genresState } = useGenresContext();
   const { gamesState, gamesDispatch } = useGamesContext();
@@ -87,68 +100,82 @@ const PostGame = () => {
     setGame({ ...game, genreIds: selectedIds });
   };
 
-  return (
-    <div className="post-game-container">
-      <form onSubmit={handlePostGame} className="post-game-form">
-        <h1 className="post-game-heading">Post a New Game</h1>
-        {isError && (
-          <Alert status="error" borderRadius={10} marginBottom={4}>
-            <AlertIcon />
-            <AlertTitle>{error}</AlertTitle>
-          </Alert>
-        )}
-        <input
-          id="title"
-          className="post-game-input"
-          value={game.title}
-          onChange={handleChange}
-          placeholder="Title"
-        />
-        <textarea
-          id="description"
-          className="post-game-input post-game-textarea"
-          value={game.description}
-          onChange={handleChange}
-          placeholder="Description"
-        />
-        <input
-          id="publisher"
-          className="post-game-input"
-          value={game.publisher}
-          onChange={handleChange}
-          placeholder="Publisher"
-        />
-        <input
-          id="releaseDate"
-          className="post-game-input"
-          value={game.releaseDate}
-          type="datetime-local"
-          onChange={handleChange}
-          placeholder="Release Date (YYYY-MM-DD)"
-        />
-        <input
-          id="imageUrl"
-          className="post-game-input"
-          value={game.imageUrl}
-          onChange={handleChange}
-          placeholder="Image URL"
-        />
-        <Select
-          isMulti
-          name="genres"
-          options={genreOptions}
-          className="post-game-select"
-          classNamePrefix="select"
-          onChange={handleGenreChange}
-          placeholder="Select Genres"
-          aria-label="Select Genres"
-        />
-        <button type="submit" className="post-game-button">
-          Post Game
-        </button>
-      </form>
-    </div>
-  );
-};
+  const handleImageUpload = (url: string) => {
+    setGame((prevGame) => ({ ...prevGame, imageUrl: url }));
+  };
 
-export default PostGame;
+  return (
+    <Box>
+      <Container maxW="6xl">
+        <Heading as="h1" size="2xl" textAlign="center" mb={8}>
+          Post a New Game
+        </Heading>
+        <Flex gap={8} alignItems="stretch">
+          <Box>
+            {game.imageUrl ? (
+              <Box as="img" src={game.imageUrl} alt="Game Preview" />
+            ) : (
+              <Box />
+            )}
+          </Box>
+          <Box flex="1">
+            <form onSubmit={handlePostGame}>
+              <VStack spacing={4} align="stretch">
+                {isError && (
+                  <Alert status="error" borderRadius={10}>
+                    <AlertIcon />
+                    <AlertTitle>{error}</AlertTitle>
+                  </Alert>
+                )}
+                <FormControl>
+                  <Input
+                    id="title"
+                    value={game.title}
+                    onChange={handleChange}
+                    placeholder="Title"
+                  />
+                </FormControl>
+                <FormControl>
+                  <Textarea
+                    id="description"
+                    value={game.description}
+                    onChange={handleChange}
+                    placeholder="Description"
+                  />
+                </FormControl>
+                <FormControl>
+                  <Input
+                    id="publisher"
+                    value={game.publisher}
+                    onChange={handleChange}
+                    placeholder="Publisher"
+                  />
+                </FormControl>
+                <FormControl>
+                  <Input
+                    id="releaseDate"
+                    value={game.releaseDate}
+                    type="datetime-local"
+                    onChange={handleChange}
+                  />
+                </FormControl>
+                <FormControl>
+                  <Select
+                    isMulti
+                    name="genres"
+                    options={genreOptions}
+                    onChange={handleGenreChange}
+                    placeholder="Select Genres"
+                    aria-label="Select Genres"
+                  />
+                </FormControl>
+                <UploadWidget setImageUrl={handleImageUpload} />
+                <Button type="submit">Post Game</Button>
+              </VStack>
+            </form>
+          </Box>
+        </Flex>
+      </Container>
+    </Box>
+  );
+}

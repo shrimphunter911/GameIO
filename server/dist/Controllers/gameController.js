@@ -78,11 +78,9 @@ const getGames = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 ],
             }
             : undefined;
-        // Define the base where conditions
         const whereConditions = Object.assign(Object.assign({ title: {
                 [sequelize_1.Op.iLike]: `%${search}%`,
             } }, (releaseDateRange && { releaseDate: releaseDateRange })), (publisher && { publisher: { [sequelize_1.Op.iLike]: `%${publisher}%` } }));
-        // Check if req.user is present to filter by userId for the /userGames route
         if (userId) {
             whereConditions.userId = userId;
         }

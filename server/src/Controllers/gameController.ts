@@ -78,7 +78,6 @@ export const getGames = async (req: Request, res: Response) => {
         }
       : undefined;
 
-    // Define the base where conditions
     const whereConditions: any = {
       title: {
         [Op.iLike]: `%${search}%`,
@@ -87,7 +86,6 @@ export const getGames = async (req: Request, res: Response) => {
       ...(publisher && { publisher: { [Op.iLike]: `%${publisher}%` } }),
     };
 
-    // Check if req.user is present to filter by userId for the /userGames route
     if (userId) {
       whereConditions.userId = userId;
     }
