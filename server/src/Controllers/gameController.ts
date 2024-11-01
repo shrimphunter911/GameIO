@@ -9,6 +9,7 @@ const gameModel = db.game as ModelStatic<GameInterface>;
 const game_genresModel = db.game_genres as ModelStatic<GameGanresInterface>;
 const genreModel = db.genre as ModelStatic<ModelWithAssociations>;
 const ratingModel = db.rating as ModelStatic<ModelWithAssociations>;
+const userModel = db.rating as ModelStatic<ModelWithAssociations>;
 
 export const createGame = async (req: Request, res: Response) => {
   try {
@@ -194,6 +195,21 @@ export const getGame = async (req: Request, res: Response) => {
         "publisher",
         "imageUrl",
         [fn("AVG", col("ratings.rated")), "avg_rating"],
+        [
+          literal(`(
+            SELECT JSON_AGG(
+              JSON_BUILD_OBJECT(
+                'name', users.name,
+                'review', ratings.review,
+                'rating', ratings.rated
+              )
+            )
+            FROM ratings
+            INNER JOIN users ON ratings."userId" = users.id
+            WHERE ratings."gameId" = ${gameId}
+          )`),
+          "reviews",
+        ],
       ],
       include: [
         {

@@ -20,6 +20,7 @@ const gameModel = Models_1.default.game;
 const game_genresModel = Models_1.default.game_genres;
 const genreModel = Models_1.default.genre;
 const ratingModel = Models_1.default.rating;
+const userModel = Models_1.default.rating;
 const createGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let games = yield gameModel.findAll({ where: { title: req.body.title } });
@@ -181,6 +182,21 @@ const getGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 "publisher",
                 "imageUrl",
                 [(0, sequelize_1.fn)("AVG", (0, sequelize_1.col)("ratings.rated")), "avg_rating"],
+                [
+                    (0, sequelize_1.literal)(`(
+            SELECT JSON_AGG(
+              JSON_BUILD_OBJECT(
+                'name', users.name,
+                'review', ratings.review,
+                'rating', ratings.rated
+              )
+            )
+            FROM ratings
+            INNER JOIN users ON ratings."userId" = users.id
+            WHERE ratings."gameId" = ${gameId}
+          )`),
+                    "reviews",
+                ],
             ],
             include: [
                 {
