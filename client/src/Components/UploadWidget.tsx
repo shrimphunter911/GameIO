@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Button } from "@chakra-ui/react";
 
 type Cloudinary = {
@@ -10,10 +10,15 @@ type Cloudinary = {
 
 interface UploadWidgetProps {
   setImageUrl: (url: string) => void;
+  isUploaded: boolean; // New prop
+  setIsUploaded: (value: boolean) => void; // New prop to manage uploaded state
 }
 
-export default function UploadWidget({ setImageUrl }: UploadWidgetProps) {
-  const [isUploaded, setIsUploaded] = useState(false); // New state to track upload status
+export default function UploadWidget({
+  setImageUrl,
+  isUploaded,
+  setIsUploaded,
+}: UploadWidgetProps) {
   const cloudinaryRef = useRef<Cloudinary | null>(null);
   const widgetRef = useRef<{ open: () => void } | null | undefined>(null);
 
@@ -28,11 +33,11 @@ export default function UploadWidget({ setImageUrl }: UploadWidgetProps) {
         if (!error && result.event === "success") {
           const url = result.info.secure_url;
           setImageUrl(url);
-          setIsUploaded(true); // Set uploaded state to true
+          setIsUploaded(true); // Set uploaded state
         }
       }
     );
-  }, [setImageUrl]);
+  }, [setImageUrl, setIsUploaded]);
 
   return !isUploaded ? (
     <Button

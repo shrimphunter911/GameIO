@@ -39,6 +39,7 @@ export default function PostGame() {
     genreIds: [],
   });
 
+  const [isUploaded, setIsUploaded] = useState(false); // Manage upload state
   const [error, setError] = useState("");
   const [isError, setIsError] = useState(false);
 
@@ -73,6 +74,7 @@ export default function PostGame() {
           imageUrl: "",
           genreIds: [],
         });
+        setIsUploaded(false); // Reset uploaded state after posting
         setIsError(false);
       } catch (error: any) {
         setError(error.message);
@@ -102,6 +104,12 @@ export default function PostGame() {
 
   const handleImageUpload = (url: string) => {
     setGame((prevGame) => ({ ...prevGame, imageUrl: url }));
+    setIsUploaded(true); // Set uploaded state to true
+  };
+
+  const clearImageUrl = () => {
+    setGame((prevGame) => ({ ...prevGame, imageUrl: "" }));
+    setIsUploaded(false); // Reset uploaded state when clearing the image
   };
 
   return (
@@ -111,9 +119,27 @@ export default function PostGame() {
           Post a New Game
         </Heading>
         <Flex gap={8} alignItems="stretch">
-          <Box>
+          <Box position="relative">
             {game.imageUrl ? (
-              <Box as="img" src={game.imageUrl} alt="Game Preview" />
+              <>
+                <Box
+                  as="img"
+                  src={game.imageUrl}
+                  alt="Game Preview"
+                  borderRadius="md"
+                />
+                <Button
+                  onClick={clearImageUrl}
+                  position="absolute"
+                  top={2}
+                  right={2}
+                  colorScheme="red"
+                  size="sm"
+                  variant="outline"
+                >
+                  &times;
+                </Button>
+              </>
             ) : (
               <Box />
             )}
@@ -169,7 +195,11 @@ export default function PostGame() {
                     aria-label="Select Genres"
                   />
                 </FormControl>
-                <UploadWidget setImageUrl={handleImageUpload} />
+                <UploadWidget
+                  setImageUrl={handleImageUpload}
+                  isUploaded={isUploaded}
+                  setIsUploaded={setIsUploaded}
+                />
                 <Button type="submit">Post Game</Button>
               </VStack>
             </form>
