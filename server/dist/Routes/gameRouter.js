@@ -15,4 +15,5 @@ router.put("/:id", auth, gameController_1.updateGame);
 router.delete("/:id", auth, gameController_1.deleteGame);
 router.post("/:id/rating", auth, ratingController_1.postRating);
 router.get("/:id/rating", auth, ratingController_1.getRating);
+router.put("/:id/rating", auth, ratingController_1.editRating);
 exports.default = router;

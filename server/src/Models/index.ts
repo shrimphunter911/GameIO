@@ -23,7 +23,7 @@ const config = {
   port: 5432,
 };
 
-const sequelize = new Sequelize("gameio", "postgres", "bracU3076", config);
+const sequelize = new Sequelize("gameio2", "postgres", "bracU3076", config);
 const db: DB = {
   sequelize,
   Sequelize,

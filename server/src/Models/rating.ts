@@ -1,8 +1,10 @@
 import { Sequelize, DataTypes, Model, ModelStatic } from "sequelize";
 import { DB, ModelWithAssociations } from "./index";
 
-interface RatingInterface extends Model {
-  rating: number;
+export interface RatingInterface extends Model {
+  id: number;
+  rated: number;
+  review: string;
 }
 
 module.exports = (sequelize: Sequelize) => {
@@ -10,6 +12,10 @@ module.exports = (sequelize: Sequelize) => {
     rated: {
       type: DataTypes.INTEGER,
       allowNull: false,
+    },
+    review: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   }) as ModelStatic<RatingInterface> & {
     associate: (db: DB) => void;

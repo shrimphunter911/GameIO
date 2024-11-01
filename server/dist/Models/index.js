@@ -8,7 +8,7 @@ const config = {
     dialect: "postgres",
     port: 5432,
 };
-const sequelize = new sequelize_1.Sequelize("gameio", "postgres", "bracU3076", config);
+const sequelize = new sequelize_1.Sequelize("gameio2", "postgres", "bracU3076", config);
 const db = {
     sequelize,
     Sequelize: sequelize_1.Sequelize,
