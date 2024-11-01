@@ -174,7 +174,7 @@ export const updateGame = async (req: Request, res: Response) => {
 
     res.status(201).json({
       ..._.omit(updatedGame.dataValues, ["userId"]),
-      genres: req.body.genres,
+      genreIds: req.body.genreIds,
     });
   } catch (error) {
     res.status(500).send(error);

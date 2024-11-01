@@ -161,7 +161,7 @@ const updateGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             publisher: req.body.publisher || game.publisher,
             imageUrl: req.body.imageUrl || game.imageUrl,
         });
-        res.status(201).json(Object.assign(Object.assign({}, lodash_1.default.omit(updatedGame.dataValues, ["userId"])), { genres: req.body.genres }));
+        res.status(201).json(Object.assign(Object.assign({}, lodash_1.default.omit(updatedGame.dataValues, ["userId"])), { genreIds: req.body.genreIds }));
     }
     catch (error) {
         res.status(500).send(error);

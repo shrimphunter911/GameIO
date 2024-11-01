@@ -7,8 +7,8 @@ import { Search } from "lucide-react";
 import { useUserContext } from "../Contexts/userContext";
 import { searchMyGames } from "../Services/searchMyGames";
 import { Link } from "react-router-dom";
-import GameCard from "./GameCard";
 import { getMyGames } from "../Services/getMyGames";
+import MyGameCard from "./MyGameCard";
 
 const MyGames = () => {
   const { userState } = useUserContext();
@@ -96,7 +96,7 @@ const MyGames = () => {
       >
         {myGames.map((game) => (
           <Link key={game.id} to={`/games/${game.id}`}>
-            <GameCard key={game.id} game={game}></GameCard>
+            <MyGameCard key={game.id} game={game}></MyGameCard>
           </Link>
         ))}
       </SimpleGrid>

@@ -19,6 +19,7 @@ import GameView from "./Components/GameView";
 import PostGame from "./Components/PostGame";
 import GameProtectedRoute from "./Routes/gameProtectedRoute";
 import MyGames from "./Components/MyGames";
+import EditGame from "./Components/EditGame";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -47,6 +48,14 @@ const router = createBrowserRouter([
         element: (
           <GameProtectedRoute>
             <PostGame />
+          </GameProtectedRoute>
+        ),
+      },
+      {
+        path: "/games/edit/:gameId",
+        element: (
+          <GameProtectedRoute>
+            <EditGame />
           </GameProtectedRoute>
         ),
       },

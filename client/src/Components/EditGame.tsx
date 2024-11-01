@@ -1,5 +1,4 @@
-import React, { FormEvent, useState } from "react";
-import Select from "react-select";
+import React, { FormEvent, useEffect, useState } from "react";
 import {
   Alert,
   AlertIcon,
@@ -14,24 +13,20 @@ import {
   Textarea,
   VStack,
 } from "@chakra-ui/react";
-import { useGenresContext } from "../Contexts/genresContext";
-import { Game } from "../Interfaces/game";
-import { useGamesContext } from "../Contexts/gamesContext";
-import { createGame } from "../Services/createGame";
+import { useNavigate, useParams } from "react-router-dom";
 import { useUserContext } from "../Contexts/userContext";
+import { Game } from "../Interfaces/game";
+import fetchGame from "../Services/fetchGame";
 import UploadWidget from "./UploadWidget";
-import { useNavigate } from "react-router-dom";
+import { updateGame } from "../Services/updateGame";
+import { useGamesContext } from "../Contexts/gamesContext";
 
-interface GenreOption {
-  value: number;
-  label: string;
-}
-
-export default function PostGame() {
+export default function EditGame() {
   const navigate = useNavigate();
   const { userState } = useUserContext();
-  const { genresState } = useGenresContext();
   const { gamesState, gamesDispatch } = useGamesContext();
+  const params = useParams();
+  const gameId = params.gameId;
   const [game, setGame] = useState<Game>({
     title: "",
     description: "",
@@ -41,53 +36,25 @@ export default function PostGame() {
     genreIds: [],
   });
 
-  const [isUploaded, setIsUploaded] = useState(false); // Manage upload state
+  const [isUploaded, setIsUploaded] = useState(false);
   const [error, setError] = useState("");
   const [isError, setIsError] = useState(false);
 
-  const genreOptions: GenreOption[] = genresState.genres.map((genre) => ({
-    value: genre.id,
-    label: genre.name,
-  }));
-
-  const isFormValid =
-    game.title.trim() !== "" &&
-    game.description.trim() !== "" &&
-    game.publisher.trim() !== "" &&
-    game.imageUrl.trim() !== "" &&
-    game.releaseDate.trim() !== "" &&
-    game.genreIds.length > 0;
-
-  const handleNewGame = (item: Game) => {
-    gamesDispatch({ type: "setGames", payload: [...gamesState.games, item] });
-  };
-
-  const handlePostGame = async (e: FormEvent) => {
-    e.preventDefault();
-    if (isFormValid) {
+  useEffect(() => {
+    const controller = new AbortController();
+    const getGame = async () => {
       try {
-        const response = await createGame(game, userState.token);
-        handleNewGame(response);
-        setGame({
-          title: "",
-          description: "",
-          publisher: "",
-          releaseDate: "",
-          imageUrl: "",
-          genreIds: [],
-        });
-        setIsUploaded(false);
-        setIsError(false);
-        navigate("/");
-      } catch (error: any) {
-        setError(error.message);
-        setIsError(true);
+        const data = await fetchGame(controller.signal, params);
+        setGame(data);
+        setIsUploaded(!!data.imageUrl);
+      } catch (err: any) {
+        if (err.message !== "Request canceled") setError(err.message);
       }
-    } else {
-      setError("Please fill all the fields properly.");
-      setIsError(true);
-    }
-  };
+    };
+
+    getGame();
+    return () => controller.abort();
+  }, [params]);
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -100,11 +67,6 @@ export default function PostGame() {
     }
   };
 
-  const handleGenreChange = (selectedOptions: readonly GenreOption[]) => {
-    const selectedIds = selectedOptions.map((option) => option.value);
-    setGame({ ...game, genreIds: selectedIds });
-  };
-
   const handleImageUpload = (url: string) => {
     setGame((prevGame) => ({ ...prevGame, imageUrl: url }));
     setIsUploaded(true);
@@ -115,11 +77,48 @@ export default function PostGame() {
     setIsUploaded(false);
   };
 
+  const isFormValid =
+    game.title.trim() !== "" &&
+    game.description.trim() !== "" &&
+    game.publisher.trim() !== "" &&
+    game.imageUrl.trim() !== "" &&
+    game.releaseDate.trim() !== "";
+
+  const handleUpdatedGame = (item: Game) => {
+    gamesDispatch({
+      type: "setGames",
+      payload: gamesState.games.map((game) => {
+        if (game.id === item.id) {
+          return item;
+        }
+        return game;
+      }),
+    });
+  };
+
+  const handleUpdateGame = async (e: FormEvent) => {
+    e.preventDefault();
+    if (isFormValid) {
+      try {
+        const response = await updateGame(game, userState.token, gameId);
+        handleUpdatedGame(response);
+        setIsError(false);
+        navigate("/");
+      } catch (error: any) {
+        setError(error.message);
+        setIsError(true);
+      }
+    } else {
+      setError("Please fill all the fields properly.");
+      setIsError(true);
+    }
+  };
+
   return (
     <Box>
       <Container maxW="6xl">
         <Heading as="h1" size="2xl" textAlign="center" mb={8}>
-          Post a New Game
+          Edit Game
         </Heading>
         <Flex gap={8} alignItems="stretch">
           <Box position="relative">
@@ -148,7 +147,7 @@ export default function PostGame() {
             )}
           </Box>
           <Box flex="1">
-            <form onSubmit={handlePostGame}>
+            <form onSubmit={handleUpdateGame}>
               <VStack spacing={4} align="stretch">
                 {isError && (
                   <Alert status="error" borderRadius={10}>
@@ -188,22 +187,12 @@ export default function PostGame() {
                     onChange={handleChange}
                   />
                 </FormControl>
-                <FormControl>
-                  <Select
-                    isMulti
-                    name="genres"
-                    options={genreOptions}
-                    onChange={handleGenreChange}
-                    placeholder="Select Genres"
-                    aria-label="Select Genres"
-                  />
-                </FormControl>
                 <UploadWidget
                   setImageUrl={handleImageUpload}
                   isUploaded={isUploaded}
                   setIsUploaded={setIsUploaded}
                 />
-                <Button type="submit">Post Game</Button>
+                <Button type="submit">Update Game</Button>
               </VStack>
             </form>
           </Box>
