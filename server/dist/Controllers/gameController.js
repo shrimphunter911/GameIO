@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getGame = exports.updateGame = exports.getGames = exports.createGame = void 0;
+exports.deleteGame = exports.getGame = exports.updateGame = exports.getGames = exports.createGame = void 0;
 const Models_1 = __importDefault(require("../Models"));
 const sequelize_1 = require("sequelize");
 const lodash_1 = __importDefault(require("lodash"));
@@ -206,3 +206,26 @@ const getGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getGame = getGame;
+const deleteGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const gameId = req.params.id;
+        const game = yield gameModel.findByPk(gameId);
+        if (!game) {
+            return res.status(404).send("Game not found");
+        }
+        if (game.userId !== req.user.id) {
+            return res.status(403).send("You are not authorized to update this game");
+        }
+        game_genresModel.destroy({
+            where: {
+                gameId: gameId,
+            },
+        });
+        game.destroy();
+        res.status(200).send("Successfully deleted");
+    }
+    catch (error) {
+        res.status(400).send(error);
+    }
+});
+exports.deleteGame = deleteGame;

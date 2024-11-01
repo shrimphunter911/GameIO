@@ -12,6 +12,7 @@ router.get("/mygames", auth, gameController_1.getGames);
 router.get("/genres", genreController_1.getGenres);
 router.get("/:id", gameController_1.getGame);
 router.put("/:id", auth, gameController_1.updateGame);
+router.delete("/:id", auth, gameController_1.deleteGame);
 router.post("/:id/rating", auth, ratingController_1.postRating);
 router.get("/:id/rating", auth, ratingController_1.getRating);
 exports.default = router;

@@ -1,5 +1,6 @@
 import {
   createGame,
+  deleteGame,
   getGame,
   getGames,
   updateGame,
@@ -18,6 +19,7 @@ router.get("/mygames", auth, getGames);
 router.get("/genres", getGenres);
 router.get("/:id", getGame);
 router.put("/:id", auth, updateGame);
+router.delete("/:id", auth, deleteGame);
 router.post("/:id/rating", auth, postRating);
 router.get("/:id/rating", auth, getRating);
 

@@ -224,3 +224,30 @@ export const getGame = async (req: Request, res: Response) => {
     res.status(400).send(error);
   }
 };
+
+export const deleteGame = async (req: Request, res: Response) => {
+  try {
+    const gameId = req.params.id;
+
+    const game = await gameModel.findByPk(gameId);
+
+    if (!game) {
+      return res.status(404).send("Game not found");
+    }
+
+    if (game.userId !== req.user.id) {
+      return res.status(403).send("You are not authorized to update this game");
+    }
+
+    game_genresModel.destroy({
+      where: {
+        gameId: gameId,
+      },
+    });
+
+    game.destroy();
+    res.status(200).send("Successfully deleted");
+  } catch (error) {
+    res.status(400).send(error);
+  }
+};
