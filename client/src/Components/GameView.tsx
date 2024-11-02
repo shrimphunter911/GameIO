@@ -78,6 +78,9 @@ const GameView = () => {
     try {
       const result = await postReview(userState.token, params, review);
       setReview(result);
+      if (game && game?.reviews) {
+        setGame({ ...game, reviews: [...game.reviews, result] });
+      }
       setIsEditing(true);
     } catch (error: any) {
       setError(error.message);
@@ -88,6 +91,24 @@ const GameView = () => {
     try {
       const result = await updateReview(userState.token, params, review);
       setReview(result);
+      if (game && game?.reviews) {
+        setGame({
+          ...game,
+          reviews: game.reviews.map((e) => {
+            if (e.id === result.id) {
+              const rev: Review = {
+                id: result.id,
+                name: e.name,
+                rated: result.rated,
+                review: result.review,
+              };
+              return rev;
+            } else {
+              return e;
+            }
+          }),
+        });
+      }
     } catch (error: any) {
       setError(error.message);
     }

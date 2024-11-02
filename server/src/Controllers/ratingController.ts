@@ -44,7 +44,7 @@ export const getRating = async (req: Request, res: Response) => {
     }
     res
       .status(200)
-      .json(_.pick(rating.dataValues, ["gameId", "rated", "review"]));
+      .json(_.pick(rating.dataValues, ["id", "gameId", "rated", "review"]));
   } catch (error) {
     res.status(404).send(error);
   }

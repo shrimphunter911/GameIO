@@ -200,6 +200,7 @@ export const getGame = async (req: Request, res: Response) => {
             SELECT JSON_AGG(
               JSON_BUILD_OBJECT(
                 'name', users.name,
+                'id', ratings.id,
                 'review', ratings.review,
                 'rated', ratings.rated
               )

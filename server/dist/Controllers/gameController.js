@@ -187,6 +187,7 @@ const getGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             SELECT JSON_AGG(
               JSON_BUILD_OBJECT(
                 'name', users.name,
+                'id', ratings.id,
                 'review', ratings.review,
                 'rated', ratings.rated
               )

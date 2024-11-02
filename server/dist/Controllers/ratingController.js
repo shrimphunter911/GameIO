@@ -52,7 +52,7 @@ const getRating = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
         res
             .status(200)
-            .json(lodash_1.default.pick(rating.dataValues, ["gameId", "rated", "review"]));
+            .json(lodash_1.default.pick(rating.dataValues, ["id", "gameId", "rated", "review"]));
     }
     catch (error) {
         res.status(404).send(error);
