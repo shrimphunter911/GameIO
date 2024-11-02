@@ -201,7 +201,7 @@ export const getGame = async (req: Request, res: Response) => {
               JSON_BUILD_OBJECT(
                 'name', users.name,
                 'review', ratings.review,
-                'rating', ratings.rated
+                'rated', ratings.rated
               )
             )
             FROM ratings

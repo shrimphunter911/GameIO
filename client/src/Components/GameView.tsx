@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-
 import {
   Box,
   Container,
@@ -18,16 +17,28 @@ import {
   Alert,
   AlertIcon,
   AlertTitle,
+  HStack,
+  Card,
+  CardBody,
+  CardFooter,
+  Divider,
 } from "@chakra-ui/react";
 import { Game } from "../Interfaces/game";
 import fetchGame from "../Services/fetchGame";
 import Rating from "./Rating";
 import { useGenresContext } from "../Contexts/genresContext";
+import InteractiveRating from "./InteractiveRating";
+import { Review } from "../Interfaces/review";
+import { getIndividualReview } from "../Services/getIndividualReview";
+import { useUserContext } from "../Contexts/userContext";
+
 const GameView = () => {
   const { genresState } = useGenresContext();
   const params = useParams<{ gameId: string }>();
   const [game, setGame] = useState<Game>();
   const [err, setError] = useState("");
+  const [review, setReview] = useState<Review>();
+  const { userState } = useUserContext();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -35,6 +46,8 @@ const GameView = () => {
       try {
         const data = await fetchGame(controller.signal, params);
         setGame(data);
+        const response = await getIndividualReview(userState.token, params);
+        setReview(response);
       } catch (err: any) {
         if (err.message !== "Request canceled") setError(err.message);
       }
@@ -60,7 +73,6 @@ const GameView = () => {
         return genre.name;
       }
     });
-
     return genreNames;
   };
 
@@ -79,7 +91,7 @@ const GameView = () => {
             spacing={{ base: 8, md: 10 }}
             py={{ base: 18, md: 24 }}
           >
-            <Flex>
+            <Flex position="relative">
               <Image
                 rounded={"md"}
                 alt={"product image"}
@@ -89,6 +101,25 @@ const GameView = () => {
                 w={"100%"}
                 h={{ base: "100%", sm: "400px", lg: "500px" }}
               />
+              {game?.avg_rating !== undefined && (
+                <Box
+                  position="absolute"
+                  bottom={2}
+                  right={2}
+                  bg="red.500"
+                  color="white"
+                  px={2}
+                  py={2}
+                  borderRadius="md"
+                  fontSize="lg"
+                  fontWeight="bold"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  {Number(game.avg_rating).toFixed(1)}
+                </Box>
+              )}
             </Flex>
             <Stack spacing={{ base: 6, md: 10 }}>
               <Box as={"header"}>
@@ -118,11 +149,7 @@ const GameView = () => {
                 }
               >
                 <VStack spacing={{ base: 4, sm: 6 }}>
-                  {game?.avg_rating ? (
-                    <Rating value={game?.avg_rating}></Rating>
-                  ) : (
-                    <Text>Not rated yet</Text>
-                  )}
+                  <InteractiveRating initialRating={review?.rated} />
                 </VStack>
                 <Box>
                   <Text
@@ -136,8 +163,8 @@ const GameView = () => {
                   </Text>
 
                   <List spacing={2}>
-                    {getGenres(game?.genreIds).map((genre) => (
-                      <ListItem>
+                    {getGenres(game?.genreIds).map((genre, index) => (
+                      <ListItem key={index}>
                         <Text as={"span"} fontWeight={"bold"}>
                           {genre}
                         </Text>
@@ -145,7 +172,7 @@ const GameView = () => {
                     ))}
                     <ListItem>
                       <Text as={"span"} fontWeight={"bold"}>
-                        Decription:
+                        Description:
                       </Text>{" "}
                       {game?.description}
                     </ListItem>
@@ -154,6 +181,36 @@ const GameView = () => {
               </Stack>
             </Stack>
           </SimpleGrid>
+
+          <Box mt={10}>
+            <Heading size="md" mb={4}>
+              Reviews
+            </Heading>
+            <Box maxH="300px" overflowY="auto">
+              <Stack spacing={4}>
+                {game?.reviews?.length ? (
+                  game.reviews.map((review, index) => (
+                    <Card key={index} border="1px" borderColor="gray.200">
+                      <CardBody>
+                        <HStack justifyContent="space-between">
+                          <Rating value={review.rated}></Rating>
+                          <Text>{review.review}</Text>
+                        </HStack>
+                      </CardBody>
+                      <Divider />
+                      <CardFooter justifyContent="end">
+                        <Text fontSize="sm" color="gray.500">
+                          {`by ${review.name}`}
+                        </Text>
+                      </CardFooter>
+                    </Card>
+                  ))
+                ) : (
+                  <Text>No reviews yet</Text>
+                )}
+              </Stack>
+            </Box>
+          </Box>
         </Container>
       ) : (
         <Alert borderRadius={10} status="error">

@@ -188,7 +188,7 @@ const getGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
               JSON_BUILD_OBJECT(
                 'name', users.name,
                 'review', ratings.review,
-                'rating', ratings.rated
+                'rated', ratings.rated
               )
             )
             FROM ratings

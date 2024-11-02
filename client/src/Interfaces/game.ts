@@ -1,5 +1,7 @@
+import { Review } from "./review";
+
 export interface Game {
-  id?: number;
+  id: number;
   title: string;
   description: string;
   releaseDate: string;
@@ -7,4 +9,5 @@ export interface Game {
   imageUrl: string;
   avg_rating?: number;
   genreIds: number[];
+  reviews?: Review[];
 }
