@@ -22,28 +22,71 @@ const App = () => {
     genres: [],
   });
   const [error, setError] = useState("");
+  const [page, setPage] = useState<number>(1);
+  const [isBottom, setIsBottom] = useState<boolean>(false);
+  let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  const handleScroll = () => {
+    if (scrollTimeout) {
+      clearTimeout(scrollTimeout);
+    }
+
+    scrollTimeout = setTimeout(() => {
+      if (
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 10
+      ) {
+        if (!isBottom) {
+          setPage((prevPage) => prevPage + 1);
+          setIsBottom(true);
+        }
+      } else {
+        setIsBottom(false);
+      }
+    }, 100);
+  };
 
   useEffect(() => {
-    const controller = new AbortController();
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+    };
+  }, []);
 
+  useEffect(() => {
     const getGames = async () => {
       try {
-        const token = await cookies.get("x-auth-token");
-        if (token) {
-          userDispatch({ type: "login", payload: token });
-        }
-        const data = await fetchGames(controller.signal);
-        gamesDispatch({ type: "setGames", payload: data });
-        const genresData = await fetchGenres(controller.signal);
-        genresDispatch({ type: "setGenres", payload: genresData });
+        const data = await fetchGames(page);
+        gamesDispatch({
+          type: "setGames",
+          payload: [...gamesState.games, ...data],
+        });
       } catch (err: any) {
         if (err.message !== "Request canceled") setError(err.message);
       }
     };
 
     getGames();
+  }, [page]);
 
-    return () => controller.abort();
+  useEffect(() => {
+    const getUserAndGenres = async () => {
+      try {
+        const token = await cookies.get("x-auth-token");
+        if (token) {
+          userDispatch({ type: "login", payload: token });
+        }
+        const genresData = await fetchGenres();
+        genresDispatch({ type: "setGenres", payload: genresData });
+      } catch (err: any) {
+        if (err.message !== "Request canceled") setError(err.message);
+      }
+    };
+
+    getUserAndGenres();
   }, []);
 
   return (

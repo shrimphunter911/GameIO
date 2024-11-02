@@ -2,9 +2,9 @@ import { Genre } from "../Interfaces/genre";
 import apiClient from "./api-client";
 import { CanceledError } from "axios";
 
-const fetchGenres = async (signal: AbortSignal): Promise<Genre[]> => {
+const fetchGenres = async (): Promise<Genre[]> => {
   try {
-    const response = await apiClient.get<Genre[]>("/games/genres", { signal });
+    const response = await apiClient.get<Genre[]>("/games/genres");
     return response.data;
   } catch (err) {
     if (err instanceof CanceledError) {
