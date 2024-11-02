@@ -261,6 +261,12 @@ export const deleteGame = async (req: Request, res: Response) => {
       },
     });
 
+    ratingModel.destroy({
+      where: {
+        gameId: gameId,
+      },
+    });
+
     game.destroy();
     res.status(200).send("Successfully deleted");
   } catch (error) {

@@ -237,6 +237,11 @@ const deleteGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 gameId: gameId,
             },
         });
+        ratingModel.destroy({
+            where: {
+                gameId: gameId,
+            },
+        });
         game.destroy();
         res.status(200).send("Successfully deleted");
     }
