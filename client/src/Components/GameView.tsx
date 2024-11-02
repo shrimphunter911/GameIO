@@ -22,22 +22,31 @@ import {
   CardBody,
   CardFooter,
   Divider,
+  Button,
+  Input,
 } from "@chakra-ui/react";
 import { Game } from "../Interfaces/game";
 import fetchGame from "../Services/fetchGame";
-import Rating from "./Rating";
-import { useGenresContext } from "../Contexts/genresContext";
 import InteractiveRating from "./InteractiveRating";
+import { useGenresContext } from "../Contexts/genresContext";
 import { Review } from "../Interfaces/review";
 import { getIndividualReview } from "../Services/getIndividualReview";
 import { useUserContext } from "../Contexts/userContext";
+import { postReview } from "../Services/postReview";
+import { updateReview } from "../Services/updateReview";
+import Rating from "./Rating";
 
 const GameView = () => {
   const { genresState } = useGenresContext();
   const params = useParams<{ gameId: string }>();
   const [game, setGame] = useState<Game>();
   const [err, setError] = useState("");
-  const [review, setReview] = useState<Review>();
+  const [review, setReview] = useState<Review>({
+    gameId: Number(params.gameId),
+    review: "",
+    rated: 0,
+  });
+  const [isEditing, setIsEditing] = useState(false);
   const { userState } = useUserContext();
 
   useEffect(() => {
@@ -46,23 +55,57 @@ const GameView = () => {
       try {
         const data = await fetchGame(controller.signal, params);
         setGame(data);
-        const response = await getIndividualReview(userState.token, params);
-        setReview(response);
+
+        if (userState.token) {
+          const response = await getIndividualReview(userState.token, params);
+          if (response && response.review) {
+            setReview(response);
+            setIsEditing(true);
+          } else {
+            setIsEditing(false);
+          }
+        }
       } catch (err: any) {
         if (err.message !== "Request canceled") setError(err.message);
       }
     };
 
     getGame();
-
     return () => controller.abort();
   }, []);
+
+  const handlePostReview = async () => {
+    try {
+      const result = await postReview(userState.token, params, review);
+      setReview(result);
+      setIsEditing(true);
+    } catch (error: any) {
+      setError(error.message);
+    }
+  };
+
+  const handleUpdateReview = async () => {
+    try {
+      const result = await updateReview(userState.token, params, review);
+      setReview(result);
+    } catch (error: any) {
+      setError(error.message);
+    }
+  };
+
+  const handleRatingChange = (newRating: number) => {
+    setReview((prevReview) => ({ ...prevReview, rated: newRating }));
+  };
+
+  const handleReviewTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setReview((prevReview) => ({ ...prevReview, review: e.target.value }));
+  };
 
   const convertDate = (givenDate: string) => {
     const date = new Date(givenDate);
     return date.toLocaleDateString("en-GB", {
       day: "numeric",
-      month: "long",
+      month: "short",
       year: "numeric",
     });
   };
@@ -148,9 +191,7 @@ const GameView = () => {
                   />
                 }
               >
-                <VStack spacing={{ base: 4, sm: 6 }}>
-                  <InteractiveRating initialRating={review?.rated} />
-                </VStack>
+                <VStack spacing={{ base: 4, sm: 6 }}></VStack>
                 <Box>
                   <Text
                     fontSize={{ base: "16px", lg: "18px" }}
@@ -211,6 +252,32 @@ const GameView = () => {
               </Stack>
             </Box>
           </Box>
+
+          {userState.token && (
+            <Box mt={10}>
+              <Heading size="md" mb={4}>
+                Rate & Review
+              </Heading>
+              <InteractiveRating
+                initialRating={review.rated || 0}
+                onChange={handleRatingChange}
+              />
+
+              <Input
+                placeholder="Write your review here..."
+                value={review.review}
+                onChange={handleReviewTextChange}
+                mt={4}
+              />
+              <Button
+                mt={4}
+                colorScheme="blue"
+                onClick={isEditing ? handleUpdateReview : handlePostReview}
+              >
+                {isEditing ? "Update Review" : "Submit Review"}
+              </Button>
+            </Box>
+          )}
         </Container>
       ) : (
         <Alert borderRadius={10} status="error">

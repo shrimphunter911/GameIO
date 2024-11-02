@@ -23,7 +23,7 @@ const postRating = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const request = {
             gameId: gameId,
             userId: userId,
-            rated: req.body.rating,
+            rated: req.body.rated,
         };
         if (req.body.review) {
             request.review = req.body.review;
@@ -62,12 +62,15 @@ exports.getRating = getRating;
 const editRating = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const gameId = req.params.id;
-        const rating = yield ratingModel.findByPk(gameId);
+        const userId = req.user.id;
+        const rating = yield ratingModel.findOne({
+            where: { gameId: gameId, userId: userId },
+        });
         if (!rating) {
             return res.status(400).send("Rating could not be found");
         }
         const request = {
-            rated: req.body.rating || rating.rated,
+            rated: req.body.rated || rating.rated,
             review: req.body.review || rating.review,
         };
         const updatedRating = yield rating.update(request);

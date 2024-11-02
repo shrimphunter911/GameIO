@@ -13,7 +13,7 @@ export const postRating = async (req: Request, res: Response) => {
     const request: any = {
       gameId: gameId,
       userId: userId,
-      rated: req.body.rating,
+      rated: req.body.rated,
     };
 
     if (req.body.review) {
@@ -53,14 +53,17 @@ export const getRating = async (req: Request, res: Response) => {
 export const editRating = async (req: Request, res: Response) => {
   try {
     const gameId = req.params.id;
-    const rating = await ratingModel.findByPk(gameId);
+    const userId = req.user.id;
+    const rating = await ratingModel.findOne({
+      where: { gameId: gameId, userId: userId },
+    });
 
     if (!rating) {
       return res.status(400).send("Rating could not be found");
     }
 
     const request: any = {
-      rated: req.body.rating || rating.rated,
+      rated: req.body.rated || rating.rated,
       review: req.body.review || rating.review,
     };
 

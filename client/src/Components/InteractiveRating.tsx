@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaStar, FaStarHalfAlt } from "react-icons/fa";
 import { Box, HStack } from "@chakra-ui/react";
 
@@ -7,6 +7,7 @@ interface InteractiveRatingProps {
   max?: number;
   size?: number;
   color?: string;
+  onChange?: (newRating: number) => void;
 }
 
 export default function InteractiveRating({
@@ -14,13 +15,22 @@ export default function InteractiveRating({
   max = 5,
   size = 24,
   color = "gold",
+  onChange,
 }: InteractiveRatingProps) {
   const [rating, setRating] = useState(initialRating);
   const [hoveredRating, setHoveredRating] = useState<number | null>(null);
 
+  useEffect(() => {
+    setRating(initialRating);
+  }, [initialRating]);
+
   const handleMouseEnter = (index: number) => setHoveredRating(index + 1);
   const handleMouseLeave = () => setHoveredRating(null);
-  const handleClick = (index: number) => setRating(index + 1);
+  const handleClick = (index: number) => {
+    const newRating = index + 1;
+    setRating(newRating);
+    onChange && onChange(newRating);
+  };
 
   const stars = Array.from({ length: max }, (_, index) => {
     const isFullStar = (hoveredRating ?? rating) >= index + 1;
