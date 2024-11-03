@@ -10,11 +10,12 @@ interface Props {
 
 export const searchMyGames = async (
   { search, publisher, releaseDate, sortByRating, genreId }: Props,
+  page: number,
   token: string
 ) => {
   try {
     const response = await apiClient.get(
-      `/games/mygames?search=${search}&publisher=${publisher}&releaseDate=${releaseDate}&sortByRating=${sortByRating}&genreId=${genreId}`,
+      `/games/mygames?search=${search}&publisher=${publisher}&releaseDate=${releaseDate}&sortByRating=${sortByRating}&genreId=${genreId}&limit=50&page=${page}`,
       {
         headers: {
           "x-auth-token": token,

@@ -6,7 +6,6 @@ import { UserContext } from "./Contexts/userContext";
 import Cookies from "universal-cookie";
 import { userReducer } from "./Reducers/userReducer";
 import { gamesReducer } from "./Reducers/gamesReducer";
-import fetchGames from "./Services/fetchGames";
 import { GamesContext } from "./Contexts/gamesContext";
 import { genresReducer } from "./Reducers/genresReducer";
 import fetchGenres from "./Services/fetchGenres";
@@ -22,55 +21,6 @@ const App = () => {
     genres: [],
   });
   const [error, setError] = useState("");
-  const [page, setPage] = useState<number>(1);
-  const [isBottom, setIsBottom] = useState<boolean>(false);
-  let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
-
-  const handleScroll = () => {
-    if (scrollTimeout) {
-      clearTimeout(scrollTimeout);
-    }
-
-    scrollTimeout = setTimeout(() => {
-      if (
-        window.innerHeight + window.scrollY >=
-        document.body.offsetHeight - 10
-      ) {
-        if (!isBottom) {
-          setPage((prevPage) => prevPage + 1);
-          setIsBottom(true);
-        }
-      } else {
-        setIsBottom(false);
-      }
-    }, 100);
-  };
-
-  useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      if (scrollTimeout) {
-        clearTimeout(scrollTimeout);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    const getGames = async () => {
-      try {
-        const data = await fetchGames(page);
-        gamesDispatch({
-          type: "setGames",
-          payload: [...gamesState.games, ...data],
-        });
-      } catch (err: any) {
-        if (err.message !== "Request canceled") setError(err.message);
-      }
-    };
-
-    getGames();
-  }, [page]);
 
   useEffect(() => {
     const getUserAndGenres = async () => {

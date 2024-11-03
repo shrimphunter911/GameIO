@@ -1,20 +1,24 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useGenresContext } from "../Contexts/genresContext";
 import { Game } from "../Interfaces/game";
-import { Box, Button, HStack, Input, SimpleGrid } from "@chakra-ui/react";
+import { Box, HStack, Input, SimpleGrid } from "@chakra-ui/react";
 import AdvancedSearchDrawer from "./AdvancedSearch";
-import { Search } from "lucide-react";
 import { useUserContext } from "../Contexts/userContext";
-import { searchMyGames } from "../Services/searchMyGames";
 import { Link } from "react-router-dom";
-import { getMyGames } from "../Services/getMyGames";
 import MyGameCard from "./MyGameCard";
+import { searchMyGames } from "../Services/searchMyGames";
 
 const MyGames = () => {
   const { userState } = useUserContext();
   const [myGames, setMyGames] = useState<Game[]>([]);
   const { genresState } = useGenresContext();
   const [error, setError] = useState("");
+  const [page, setPage] = useState<number>(1);
+  const [isBottom, setIsBottom] = useState<boolean>(false);
+  const genres = genresState.genres;
+  const token = userState.token;
+  let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
+
   const [input, setInput] = useState({
     search: "",
     genreId: "",
@@ -22,31 +26,74 @@ const MyGames = () => {
     releaseDate: "",
     sortByRating: "",
   });
+  const [debouncedInput, setDebouncedInput] = useState(input);
 
   useEffect(() => {
-    const getGames = async () => {
+    setPage(1);
+    const handleSearch = async () => {
       try {
-        const response = await getMyGames(token);
-        setMyGames(response);
+        const result = await searchMyGames(debouncedInput, page, token);
+        setMyGames(result);
       } catch (error: any) {
         setError(error.message);
       }
     };
 
-    getGames();
+    handleSearch();
+  }, [debouncedInput]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedInput(input);
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [input]);
+
+  const handleScroll = () => {
+    if (scrollTimeout) {
+      clearTimeout(scrollTimeout);
+    }
+
+    scrollTimeout = setTimeout(() => {
+      if (
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 10
+      ) {
+        if (!isBottom) {
+          setPage((prevPage) => prevPage + 1);
+          setIsBottom(true);
+        }
+      } else {
+        setIsBottom(false);
+      }
+    }, 100);
+  };
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+    };
   }, []);
 
-  const genres = genresState.genres;
-  const token = userState.token;
-  const handleSearchButton = async (e: FormEvent) => {
-    e.preventDefault();
-    try {
-      const response = await searchMyGames(input, token);
-      setMyGames(response);
-    } catch (error: any) {
-      setError(error);
-    }
-  };
+  useEffect(() => {
+    const getGames = async () => {
+      try {
+        const data = await searchMyGames(debouncedInput, page, token);
+        setMyGames([...myGames, ...data]);
+      } catch (err: any) {
+        if (err.message !== "Request canceled") setError(err.message);
+      }
+    };
+
+    getGames();
+  }, [page]);
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -56,12 +103,6 @@ const MyGames = () => {
 
   const handleSortChange = (sort: "asc" | "desc") => {
     setInput({ ...input, sortByRating: sort });
-  };
-
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
-      handleSearchButton(event);
-    }
   };
 
   return (
@@ -75,7 +116,6 @@ const MyGames = () => {
             id="search"
             value={input.search}
             onChange={handleChange}
-            onKeyDown={handleKeyDown}
             pr="40px"
           />
           <AdvancedSearchDrawer
@@ -85,9 +125,6 @@ const MyGames = () => {
             genres={genres}
           />
         </Box>
-        <Button onClick={handleSearchButton}>
-          <Search />
-        </Button>
       </HStack>
       <SimpleGrid
         columns={{ sm: 2, md: 2, lg: 3, xl: 3 }}
