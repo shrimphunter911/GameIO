@@ -40,6 +40,7 @@ const GameView = () => {
   const { genresState } = useGenresContext();
   const params = useParams<{ gameId: string }>();
   const [game, setGame] = useState<Game>();
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [err, setError] = useState("");
   const [review, setReview] = useState<Review>({
     gameId: Number(params.gameId),
@@ -55,6 +56,7 @@ const GameView = () => {
       try {
         const data = await fetchGame(controller.signal, params);
         setGame(data);
+        setReviews(data.reviews || []);
 
         if (userState.token) {
           const response = await getIndividualReview(userState.token, params);
@@ -78,9 +80,7 @@ const GameView = () => {
     try {
       const result = await postReview(userState.token, params, review);
       setReview(result);
-      if (game && game?.reviews) {
-        setGame({ ...game, reviews: [...game.reviews, result] });
-      }
+      setReviews([...reviews, result]);
       setIsEditing(true);
     } catch (error: any) {
       setError(error.message);
@@ -91,24 +91,13 @@ const GameView = () => {
     try {
       const result = await updateReview(userState.token, params, review);
       setReview(result);
-      if (game && game?.reviews) {
-        setGame({
-          ...game,
-          reviews: game.reviews.map((e) => {
-            if (e.id === result.id) {
-              const rev: Review = {
-                id: result.id,
-                name: e.name,
-                rated: result.rated,
-                review: result.review,
-              };
-              return rev;
-            } else {
-              return e;
-            }
-          }),
-        });
-      }
+      setReviews((prevReviews) =>
+        prevReviews.map((e) =>
+          e.id === result.id
+            ? { ...e, rated: result.rated, review: result.review }
+            : e
+        )
+      );
     } catch (error: any) {
       setError(error.message);
     }
@@ -250,8 +239,8 @@ const GameView = () => {
             </Heading>
             <Box maxH="300px" overflowY="auto">
               <Stack spacing={4}>
-                {game?.reviews?.length ? (
-                  game.reviews.map((review, index) => (
+                {reviews.length ? (
+                  reviews.map((review, index) => (
                     <Card key={index} border="1px" borderColor="gray.200">
                       <CardBody>
                         <HStack justifyContent="space-between">
