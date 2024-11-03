@@ -1,3 +1,4 @@
+import { Game } from "../Interfaces/game";
 import apiClient from "./api-client";
 
 interface Props {
@@ -16,8 +17,8 @@ export const searchGames = async ({
   genreId,
 }: Props) => {
   try {
-    const response = await apiClient.get(
-      `/games?search=${search}&publisher=${publisher}&releaseDate=${releaseDate}&sortByRating=${sortByRating}&genreId=${genreId}`
+    const response = await apiClient.get<Game[]>(
+      `/games?search=${search}&publisher=${publisher}&releaseDate=${releaseDate}&sortByRating=${sortByRating}&genreId=${genreId}&limit=5`
     );
     return response.data;
   } catch (error) {
