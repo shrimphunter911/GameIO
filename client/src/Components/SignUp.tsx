@@ -1,7 +1,4 @@
 import {
-  Alert,
-  AlertIcon,
-  AlertTitle,
   Button,
   Flex,
   Heading,
@@ -9,12 +6,15 @@ import {
   Input,
   Stack,
   Text,
+  FormControl,
+  FormErrorMessage,
 } from "@chakra-ui/react";
 import { FormEvent, useState } from "react";
 import { createUser } from "../Services/createUser";
 import { Link } from "react-router-dom";
 import { useUserContext } from "../Contexts/userContext";
 import Cookies from "universal-cookie";
+import { showToast } from "../Services/showToast";
 
 const SignUp = () => {
   const cookies = new Cookies();
@@ -50,10 +50,14 @@ const SignUp = () => {
       } catch (err: any) {
         setError(err.message);
         setIsError(true);
+        showToast("error", error, "Sign Up");
+      } finally {
+        showToast("success", "Sign Up successful", "Sign UP");
       }
     } else {
       setError("Please fill in all fields correctly.");
       setIsError(true);
+      showToast("error", "Please fill in all fields correctly.", "Sign Up");
     }
   };
 
@@ -72,34 +76,41 @@ const SignUp = () => {
           Create a user
         </Heading>
         <Stack padding="10px" spacing={7} boxSize={450}>
-          {isError && (
-            <Alert borderRadius={10} status="error">
-              <AlertIcon />
-              <AlertTitle>{error}</AlertTitle>
-            </Alert>
-          )}
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={handleChange}
-            variant="outline"
-            placeholder="Name"
-          />
-          <Input
-            id="email"
-            value={formData.email}
-            onChange={handleChange}
-            variant="outline"
-            placeholder="Email"
-          />
-          <Input
-            id="password"
-            value={formData.password}
-            onChange={handleChange}
-            type="password"
-            variant="outline"
-            placeholder="Password"
-          />
+          <FormControl isInvalid={isError && formData.name.trim() === ""}>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={handleChange}
+              variant="outline"
+              placeholder="Name"
+            />
+            <FormErrorMessage>Name is required.</FormErrorMessage>
+          </FormControl>
+          <FormControl isInvalid={isError && !isEmailValid(formData.email)}>
+            <Input
+              id="email"
+              value={formData.email}
+              onChange={handleChange}
+              variant="outline"
+              placeholder="Email"
+            />
+            <FormErrorMessage>Valid email is required.</FormErrorMessage>
+          </FormControl>
+          <FormControl
+            isInvalid={isError && !isPasswordValid(formData.password)}
+          >
+            <Input
+              id="password"
+              value={formData.password}
+              onChange={handleChange}
+              type="password"
+              variant="outline"
+              placeholder="Password"
+            />
+            <FormErrorMessage>
+              Password must be at least 8 characters.
+            </FormErrorMessage>
+          </FormControl>
           <Button type="submit" colorScheme="blue">
             Sign Up
           </Button>

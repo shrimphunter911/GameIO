@@ -14,7 +14,7 @@ module.exports = (sequelize: Sequelize) => {
       allowNull: false,
     },
     review: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
   }) as ModelStatic<RatingInterface> & {

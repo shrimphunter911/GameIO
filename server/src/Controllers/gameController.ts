@@ -202,7 +202,8 @@ export const getGame = async (req: Request, res: Response) => {
                 'name', users.name,
                 'id', ratings.id,
                 'review', ratings.review,
-                'rated', ratings.rated
+                'rated', ratings.rated,
+                'createdAt', ratings."createdAt"
               )
             )
             FROM ratings

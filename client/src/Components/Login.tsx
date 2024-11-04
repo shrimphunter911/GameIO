@@ -1,7 +1,4 @@
 import {
-  Alert,
-  AlertIcon,
-  AlertTitle,
   Button,
   Flex,
   Heading,
@@ -9,12 +6,15 @@ import {
   Input,
   Stack,
   Text,
+  FormControl,
+  FormErrorMessage,
 } from "@chakra-ui/react";
 import { FormEvent, useState } from "react";
 import { loginUser } from "../Services/authUser";
 import { Link } from "react-router-dom";
 import { useUserContext } from "../Contexts/userContext";
 import Cookies from "universal-cookie";
+import { showToast } from "../Services/showToast";
 
 const Login = () => {
   const cookies = new Cookies();
@@ -44,13 +44,16 @@ const Login = () => {
         await cookies.set("x-auth-token", response, { expires: date });
         userDispatch({ type: "login", payload: response });
         setFormData({ email: "", password: "" });
-      } catch (err) {
+        showToast("success", "Login successful", "Login");
+      } catch (err: any) {
         setError("Login failed. Please try again.");
         setIsError(true);
+        showToast("error", error, "Login");
       }
     } else {
       setError("Please fill in all fields correctly.");
       setIsError(true);
+      showToast("error", "Please fill in all fields correctly.", "Login");
     }
   };
 
@@ -69,27 +72,31 @@ const Login = () => {
           Login
         </Heading>
         <Stack padding="10px" spacing={7} boxSize={450}>
-          {isError && (
-            <Alert borderRadius={10} status="error">
-              <AlertIcon />
-              <AlertTitle>{error}</AlertTitle>
-            </Alert>
-          )}
-          <Input
-            id="email"
-            value={formData.email}
-            onChange={handleChange}
-            variant="outline"
-            placeholder="Email"
-          />
-          <Input
-            id="password"
-            value={formData.password}
-            onChange={handleChange}
-            type="password"
-            variant="outline"
-            placeholder="Password"
-          />
+          <FormControl isInvalid={isError && !isEmailValid(formData.email)}>
+            <Input
+              id="email"
+              value={formData.email}
+              onChange={handleChange}
+              variant="outline"
+              placeholder="Email"
+            />
+            <FormErrorMessage>Valid email is required.</FormErrorMessage>
+          </FormControl>
+          <FormControl
+            isInvalid={isError && !isPasswordValid(formData.password)}
+          >
+            <Input
+              id="password"
+              value={formData.password}
+              onChange={handleChange}
+              type="password"
+              variant="outline"
+              placeholder="Password"
+            />
+            <FormErrorMessage>
+              Password must be at least 8 characters.
+            </FormErrorMessage>
+          </FormControl>
           <Button type="submit" colorScheme="blue">
             Login
           </Button>

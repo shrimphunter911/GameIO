@@ -29,10 +29,10 @@ const MyGames = () => {
   const [debouncedInput, setDebouncedInput] = useState(input);
 
   useEffect(() => {
-    setPage(1);
     const handleSearch = async () => {
       try {
-        const result = await searchMyGames(debouncedInput, page, token);
+        setPage(1);
+        const result = await searchMyGames(debouncedInput, 1, token);
         setMyGames(result);
       } catch (error: any) {
         setError(error.message);
@@ -98,7 +98,9 @@ const MyGames = () => {
       }
     };
 
-    getGames();
+    if (page !== 1) {
+      getGames();
+    }
   }, [page]);
 
   const handleChange = (

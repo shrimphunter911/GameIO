@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useUserContext } from "../Contexts/userContext";
 import Cookies from "universal-cookie";
 import { CirclePlus, House, Library, LogOut } from "lucide-react";
+import { showToast } from "../Services/showToast";
 
 const NavBar = () => {
   const navigate = useNavigate();
@@ -11,9 +12,15 @@ const NavBar = () => {
   const { userState, userDispatch } = useUserContext();
 
   const handleLogout = async () => {
-    await cookies.remove("x-auth-token");
-    userDispatch({ type: "logout", payload: "" });
-    navigate("/");
+    try {
+      await cookies.remove("x-auth-token");
+      userDispatch({ type: "logout", payload: "" });
+    } catch (error: any) {
+      showToast("error", error.message, "Logout");
+    } finally {
+      showToast("success", "Successfully Logged Out", "Log Out");
+      navigate("/");
+    }
   };
 
   return (

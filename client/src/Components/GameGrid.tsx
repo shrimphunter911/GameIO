@@ -26,10 +26,10 @@ const GameGrid = () => {
   const [debouncedInput, setDebouncedInput] = useState(input);
 
   useEffect(() => {
-    setPage(1);
     const handleSearch = async () => {
       try {
-        const result = await searchGames(debouncedInput, page);
+        setPage(1);
+        const result = await searchGames(debouncedInput, 1);
         gamesDispatch({ type: "setGames", payload: result });
       } catch (error: any) {
         setError(error.message);
@@ -100,7 +100,9 @@ const GameGrid = () => {
       }
     };
 
-    getGames();
+    if (page !== 1) {
+      getGames();
+    }
   }, [page]);
 
   const handleChange = (

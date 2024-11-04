@@ -1,7 +1,9 @@
 import {
+  Box,
   Button,
   Card,
   CardBody,
+  Flex,
   Heading,
   HStack,
   Image,
@@ -16,6 +18,7 @@ import ConfirmDeleteDialog from "./ConfirmDeleteDialog";
 import { deleteGame } from "../Services/deleteGame";
 import { useUserContext } from "../Contexts/userContext";
 import { useGamesContext } from "../Contexts/gamesContext";
+import { showToast } from "../Services/showToast";
 
 interface Props {
   game: Game;
@@ -36,9 +39,12 @@ const MyGameCard = ({ game }: Props) => {
         payload: gamesState.games.filter((item) => item.id !== game.id),
       });
       setDeleteDialogOpen(false);
-      navigate("/");
     } catch (error: any) {
       setError(error.message);
+      showToast("error", error, "Delete Game");
+    } finally {
+      showToast("success", "Successfully removed", "Delete Game");
+      navigate("/");
     }
   };
 
@@ -50,15 +56,31 @@ const MyGameCard = ({ game }: Props) => {
 
   return (
     <Card borderRadius={10} overflow="hidden">
-      <Image objectFit="cover" boxSize="425px" src={game.imageUrl} />
+      <Flex position="relative">
+        <Image objectFit="cover" boxSize="425px" src={game.imageUrl} />
+        {game.avg_rating ? (
+          <Box
+            position="absolute"
+            bottom={2}
+            right={2}
+            bg="red.500"
+            color="white"
+            px={2}
+            py={2}
+            borderRadius="md"
+            fontSize="lg"
+            fontWeight="bold"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            {Number(game.avg_rating).toFixed(1)}
+          </Box>
+        ) : null}
+      </Flex>
       <CardBody>
         <Heading fontSize="2xl">{game.title}</Heading>
         <HStack justifyContent="space-between">
-          {game.avg_rating ? (
-            <Rating value={game.avg_rating}></Rating>
-          ) : (
-            <Text>Not rated yet</Text>
-          )}
           <HStack>
             <Link key={game.id} to={`/games/edit/${game.id}`}>
               <Button>Edit</Button>

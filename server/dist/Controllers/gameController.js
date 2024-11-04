@@ -189,7 +189,8 @@ const getGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 'name', users.name,
                 'id', ratings.id,
                 'review', ratings.review,
-                'rated', ratings.rated
+                'rated', ratings.rated,
+                'createdAt', ratings."createdAt"
               )
             )
             FROM ratings
