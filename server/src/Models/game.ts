@@ -22,11 +22,8 @@ module.exports = (sequelize: Sequelize) => {
       },
     },
     description: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: false,
-      validate: {
-        len: [1, 255],
-      },
     },
     releaseDate: {
       type: DataTypes.DATE,

@@ -1,4 +1,4 @@
-import { Box, Input, SimpleGrid } from "@chakra-ui/react";
+import { Box, Input, SimpleGrid, Spinner, Center } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 import GameCard from "./GameCard";
 import { useEffect, useState } from "react";
@@ -7,6 +7,7 @@ import AdvancedSearchDrawer from "./AdvancedSearch";
 import { useGenresContext } from "../Contexts/genresContext";
 import { searchGames } from "../Services/searchGames";
 import { showToast } from "../Services/showToast";
+
 const GameGrid = () => {
   const [error, setError] = useState("");
   const [page, setPage] = useState<number>(1);
@@ -15,6 +16,7 @@ const GameGrid = () => {
   const { genresState } = useGenresContext();
   const genres = genresState.genres;
   const games = gamesState.games;
+  const [loading, setLoading] = useState(false);
   let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
   const [input, setInput] = useState({
     search: "",
@@ -28,12 +30,15 @@ const GameGrid = () => {
   useEffect(() => {
     const handleSearch = async () => {
       try {
+        setLoading(true); // Start loading
         setPage(1);
         const result = await searchGames(debouncedInput, 1);
         gamesDispatch({ type: "setGames", payload: result });
       } catch (error: any) {
         setError(error.message);
         showToast("error", error, "Error");
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -83,6 +88,7 @@ const GameGrid = () => {
   useEffect(() => {
     const getGames = async () => {
       try {
+        setLoading(true);
         const data = await searchGames(debouncedInput, page);
         const uniqueGames = [
           ...gamesState.games,
@@ -97,6 +103,8 @@ const GameGrid = () => {
         });
       } catch (err: any) {
         if (err.message !== "Request canceled") setError(err.message);
+      } finally {
+        setLoading(false); // End loading
       }
     };
 
@@ -145,6 +153,11 @@ const GameGrid = () => {
           </Link>
         ))}
       </SimpleGrid>
+      {loading && (
+        <Center mt={4} mb={4}>
+          <Spinner size="lg" color="blue.500" />
+        </Center>
+      )}
     </>
   );
 };

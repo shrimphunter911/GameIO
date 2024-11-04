@@ -10,14 +10,14 @@ const getRandomImageUrl = () => {
 
 const generateRandomGameData = () => ({
   title: faker.commerce.productName(),
-  description: faker.lorem.sentences(2),
+  description: faker.lorem.sentences(15),
   publisher: faker.company.name(),
   imageUrl: getRandomImageUrl(),
   releaseDate: faker.date.between({from: '2020-01-01T00:00:00.000Z', to: '2030-01-01T00:00:00.000Z'}),
   genreIds: [faker.number.int({ min: 1, max: 15 }), faker.number.int({ min: 1, max: 15 })],
 });
 
-const generateGames = async (token, numberOfGames = 10) => {
+const generateGames = async (token, numberOfGames = 10000) => {
   for (let i = 0; i < numberOfGames; i++) {
     const gameData = generateRandomGameData();
 
@@ -31,5 +31,5 @@ const generateGames = async (token, numberOfGames = 10) => {
 };
 
 // Provide the token here
-const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzMwNjkzMTM2fQ.LiwMgyGv0BzHhKeQcCQK1plD4mJhdvbdnYaa3NU4MT0";
+const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzMwNzM4NjU1fQ.HV0AwCVo9P-YHWaSa260yuYLRL4xKfHkUW_fsCKbQyo";
 generateGames(token);

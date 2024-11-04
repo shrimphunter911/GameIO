@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { format } from "date-fns";
 import {
   Box,
   Container,
@@ -23,7 +24,7 @@ import {
   CardFooter,
   Divider,
   Button,
-  Input,
+  Textarea,
 } from "@chakra-ui/react";
 import { Game } from "../Interfaces/game";
 import fetchGame from "../Services/fetchGame";
@@ -122,7 +123,9 @@ const GameView = () => {
     setReview((prevReview) => ({ ...prevReview, rated: newRating }));
   };
 
-  const handleReviewTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleReviewTextChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
     setReview((prevReview) => ({ ...prevReview, review: e.target.value }));
   };
 
@@ -143,6 +146,10 @@ const GameView = () => {
     });
     return genreNames;
   };
+
+  function formatDateTime(dateString: string) {
+    return format(new Date(dateString), "hh:mm a, dd MMM, yyyy");
+  }
 
   return (
     <>
@@ -252,23 +259,33 @@ const GameView = () => {
             <Heading size="md" mb={4}>
               Reviews
             </Heading>
-            <Box maxH="300px" overflowY="auto">
-              <Stack spacing={4}>
+            <Box
+              maxH="500px"
+              overflowY="auto"
+              borderRadius="lg"
+              borderWidth="1px"
+            >
+              <Stack spacing={4} p={4}>
                 {reviews.length ? (
-                  reviews.map((review, index) => (
-                    <Card key={index} border="1px" borderColor="gray.200">
+                  reviews.map((review) => (
+                    <Card key={review.id} boxShadow="md" borderRadius="lg">
                       <CardBody>
-                        <HStack justifyContent="space-between">
-                          <Rating value={review.rated}></Rating>
-                          <Text>{review.review}</Text>
-                        </HStack>
+                        <Flex>
+                          <VStack align="start" width="30%" pr={4}>
+                            <Text fontWeight="bold">{review.name}</Text>
+                            <Rating value={review.rated} />
+                          </VStack>
+                          <VStack align="start" width="70%">
+                            <Text>{review.review}</Text>
+                          </VStack>
+                        </Flex>
                       </CardBody>
                       <Divider />
-                      <CardFooter justifyContent="end">
+                      <Box p={2} textAlign="right">
                         <Text fontSize="sm" color="gray.500">
-                          {`by ${review.name}`}
+                          {formatDateTime(review.createdAt!)}
                         </Text>
-                      </CardFooter>
+                      </Box>
                     </Card>
                   ))
                 ) : (
@@ -288,7 +305,7 @@ const GameView = () => {
                 onChange={handleRatingChange}
               />
 
-              <Input
+              <Textarea
                 placeholder="Write your review here..."
                 value={review.review}
                 onChange={handleReviewTextChange}
@@ -307,7 +324,7 @@ const GameView = () => {
       ) : (
         <Alert borderRadius={10} status="error">
           <AlertIcon />
-          <AlertTitle>No game found with the id</AlertTitle>
+          <AlertTitle>No game found</AlertTitle>
         </Alert>
       )}
     </>

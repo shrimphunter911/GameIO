@@ -16,7 +16,7 @@ export const searchMyGames = async (
 ) => {
   try {
     const response = await apiClient.get<Game[]>(
-      `/games/mygames?search=${search}&publisher=${publisher}&releaseDate=${releaseDate}&sortByRating=${sortByRating}&genreId=${genreId}&limit=5&page=${page}`,
+      `/games/mygames?search=${search}&publisher=${publisher}&releaseDate=${releaseDate}&sortByRating=${sortByRating}&genreId=${genreId}&limit=50&page=${page}`,
       {
         headers: {
           "x-auth-token": token,
