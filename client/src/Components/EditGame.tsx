@@ -1,13 +1,11 @@
 import React, { FormEvent, useEffect, useState } from "react";
 import {
-  Alert,
-  AlertIcon,
-  AlertTitle,
   Box,
   Button,
   Container,
   Flex,
   FormControl,
+  FormErrorMessage,
   Heading,
   Input,
   Textarea,
@@ -20,6 +18,7 @@ import fetchGame from "../Services/fetchGame";
 import UploadWidget from "./UploadWidget";
 import { updateGame } from "../Services/updateGame";
 import { useGamesContext } from "../Contexts/gamesContext";
+import { showToast } from "../Services/showToast";
 
 export default function EditGame() {
   const navigate = useNavigate();
@@ -45,7 +44,10 @@ export default function EditGame() {
     const getGame = async () => {
       try {
         const data = await fetchGame(controller.signal, params);
-        setGame(data);
+        const formattedReleaseDate = data.releaseDate
+          ? new Date(data.releaseDate).toISOString().slice(0, 16)
+          : "";
+        setGame({ ...data, releaseDate: formattedReleaseDate });
         setIsUploaded(!!data.imageUrl);
       } catch (err: any) {
         if (err.message !== "Request canceled") setError(err.message);
@@ -103,14 +105,18 @@ export default function EditGame() {
         const response = await updateGame(game, userState.token, gameId);
         handleUpdatedGame(response);
         setIsError(false);
-        navigate("/");
       } catch (error: any) {
         setError(error.message);
         setIsError(true);
+        showToast("error", error, "Error");
+      } finally {
+        showToast("success", "Updated successfully", "Success");
+        navigate("/");
       }
     } else {
       setError("Please fill all the fields properly.");
       setIsError(true);
+      showToast("error", "Please fill all the fields properly.", "Error");
     }
   };
 
@@ -149,49 +155,56 @@ export default function EditGame() {
           <Box flex="1">
             <form onSubmit={handleUpdateGame}>
               <VStack spacing={4} align="stretch">
-                {isError && (
-                  <Alert status="error" borderRadius={10}>
-                    <AlertIcon />
-                    <AlertTitle>{error}</AlertTitle>
-                  </Alert>
-                )}
-                <FormControl>
+                <FormControl isInvalid={isError && game.title.trim() === ""}>
                   <Input
                     id="title"
                     value={game.title}
                     onChange={handleChange}
                     placeholder="Title"
                   />
+                  <FormErrorMessage>Title is required.</FormErrorMessage>
                 </FormControl>
-                <FormControl>
+                <FormControl
+                  isInvalid={isError && game.description.trim() === ""}
+                >
                   <Textarea
                     id="description"
                     value={game.description}
                     onChange={handleChange}
                     placeholder="Description"
                   />
+                  <FormErrorMessage>Description is required.</FormErrorMessage>
                 </FormControl>
-                <FormControl>
+                <FormControl
+                  isInvalid={isError && game.publisher.trim() === ""}
+                >
                   <Input
                     id="publisher"
                     value={game.publisher}
                     onChange={handleChange}
                     placeholder="Publisher"
                   />
+                  <FormErrorMessage>Publisher is required.</FormErrorMessage>
                 </FormControl>
-                <FormControl>
+                <FormControl
+                  isInvalid={isError && game.releaseDate.trim() === ""}
+                >
                   <Input
                     id="releaseDate"
                     value={game.releaseDate}
                     type="datetime-local"
                     onChange={handleChange}
                   />
+                  <FormErrorMessage>Release date is required.</FormErrorMessage>
                 </FormControl>
-                <UploadWidget
-                  setImageUrl={handleImageUpload}
-                  isUploaded={isUploaded}
-                  setIsUploaded={setIsUploaded}
-                />
+                <FormControl isInvalid={isError && game.imageUrl.trim() === ""}>
+                  <UploadWidget
+                    setImageUrl={handleImageUpload}
+                    isUploaded={isUploaded}
+                    setIsUploaded={setIsUploaded}
+                  />
+                  <FormErrorMessage>Image is required.</FormErrorMessage>
+                </FormControl>
                 <Button type="submit">Update Game</Button>
               </VStack>
             </form>

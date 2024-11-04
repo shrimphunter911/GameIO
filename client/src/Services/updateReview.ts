@@ -22,6 +22,6 @@ export const updateReview = async (
     );
     return response.data;
   } catch (error) {
-    throw new Error("Posting review failed");
+    throw new Error("Updating review failed");
   }
 };

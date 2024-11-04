@@ -15,7 +15,7 @@ export const searchGames = async (
 ) => {
   try {
     const response = await apiClient.get<Game[]>(
-      `/games?search=${search}&publisher=${publisher}&releaseDate=${releaseDate}&sortByRating=${sortByRating}&genreId=${genreId}&limit=50&page=${page}`
+      `/games?search=${search}&publisher=${publisher}&releaseDate=${releaseDate}&sortByRating=${sortByRating}&genreId=${genreId}&limit=5&page=${page}`
     );
     return response.data;
   } catch (error: any) {

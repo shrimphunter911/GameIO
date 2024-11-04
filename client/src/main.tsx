@@ -6,6 +6,7 @@ import {
   AlertTitle,
   ChakraProvider,
   ColorModeScript,
+  createStandaloneToast,
 } from "@chakra-ui/react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import App from "./App";
@@ -20,6 +21,7 @@ import PostGame from "./Components/PostGame";
 import GameProtectedRoute from "./Routes/gameProtectedRoute";
 import MyGames from "./Components/MyGames";
 import EditGame from "./Components/EditGame";
+const { ToastContainer, toast } = createStandaloneToast();
 const router = createBrowserRouter([
   {
     path: "/",
@@ -84,10 +86,13 @@ const router = createBrowserRouter([
 ]);
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
-    <ChakraProvider theme={theme}>
-      <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-      <RouterProvider router={router} />
-    </ChakraProvider>
-  </React.StrictMode>
+  <>
+    <ToastContainer />
+    <React.StrictMode>
+      <ChakraProvider theme={theme}>
+        <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+        <RouterProvider router={router} />
+      </ChakraProvider>
+    </React.StrictMode>
+  </>
 );

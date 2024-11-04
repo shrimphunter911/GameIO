@@ -6,6 +6,7 @@ import { useGamesContext } from "../Contexts/gamesContext";
 import AdvancedSearchDrawer from "./AdvancedSearch";
 import { useGenresContext } from "../Contexts/genresContext";
 import { searchGames } from "../Services/searchGames";
+import { showToast } from "../Services/showToast";
 const GameGrid = () => {
   const [error, setError] = useState("");
   const [page, setPage] = useState<number>(1);
@@ -15,7 +16,6 @@ const GameGrid = () => {
   const genres = genresState.genres;
   const games = gamesState.games;
   let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
-
   const [input, setInput] = useState({
     search: "",
     genreId: "",
@@ -33,6 +33,7 @@ const GameGrid = () => {
         gamesDispatch({ type: "setGames", payload: result });
       } catch (error: any) {
         setError(error.message);
+        showToast("error", error, "Error");
       }
     };
 
@@ -83,9 +84,16 @@ const GameGrid = () => {
     const getGames = async () => {
       try {
         const data = await searchGames(debouncedInput, page);
+        const uniqueGames = [
+          ...gamesState.games,
+          ...data.filter(
+            (newGame) =>
+              !gamesState.games.some((game) => game.id === newGame.id)
+          ),
+        ];
         gamesDispatch({
           type: "setGames",
-          payload: [...gamesState.games, ...data],
+          payload: uniqueGames,
         });
       } catch (err: any) {
         if (err.message !== "Request canceled") setError(err.message);

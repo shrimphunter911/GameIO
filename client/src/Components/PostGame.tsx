@@ -1,14 +1,12 @@
 import React, { FormEvent, useState } from "react";
-import Select from "react-select";
+import Select, { StylesConfig } from "react-select";
 import {
-  Alert,
-  AlertIcon,
-  AlertTitle,
   Box,
   Button,
   Container,
   Flex,
   FormControl,
+  FormErrorMessage,
   Heading,
   Input,
   Textarea,
@@ -21,11 +19,21 @@ import { createGame } from "../Services/createGame";
 import { useUserContext } from "../Contexts/userContext";
 import UploadWidget from "./UploadWidget";
 import { useNavigate } from "react-router-dom";
+import { showToast } from "../Services/showToast";
 
 interface GenreOption {
   value: number;
   label: string;
 }
+
+const customSelectStyles: StylesConfig<GenreOption, true> = {
+  option: (provided, state) => ({
+    ...provided,
+    color: "black",
+    backgroundColor: state.isFocused ? "#f0f0f0" : "white", // Light gray background on hover
+    // You can add additional styling here if needed
+  }),
+};
 
 export default function PostGame() {
   const navigate = useNavigate();
@@ -41,22 +49,32 @@ export default function PostGame() {
     genreIds: [],
   });
 
-  const [isUploaded, setIsUploaded] = useState(false); // Manage upload state
-  const [error, setError] = useState("");
-  const [isError, setIsError] = useState(false);
+  const [isUploaded, setIsUploaded] = useState(false);
+  const [errorFields, setErrorFields] = useState<string[]>([]);
 
   const genreOptions: GenreOption[] = genresState.genres.map((genre) => ({
     value: genre.id,
     label: genre.name,
   }));
 
-  const isFormValid =
-    game.title.trim() !== "" &&
-    game.description.trim() !== "" &&
-    game.publisher.trim() !== "" &&
-    game.imageUrl.trim() !== "" &&
-    game.releaseDate.trim() !== "" &&
-    game.genreIds.length > 0;
+  const validateForm = () => {
+    const requiredFields = [
+      { id: "title", value: game.title },
+      { id: "description", value: game.description },
+      { id: "publisher", value: game.publisher },
+      { id: "releaseDate", value: game.releaseDate },
+      { id: "imageUrl", value: game.imageUrl },
+    ];
+
+    const invalidFields = requiredFields
+      .filter((field) => field.value.trim() === "")
+      .map((field) => field.id);
+
+    if (game.genreIds.length === 0) invalidFields.push("genreIds");
+    setErrorFields(invalidFields);
+
+    return invalidFields.length === 0;
+  };
 
   const handleNewGame = (item: Game) => {
     gamesDispatch({ type: "setGames", payload: [...gamesState.games, item] });
@@ -64,7 +82,7 @@ export default function PostGame() {
 
   const handlePostGame = async (e: FormEvent) => {
     e.preventDefault();
-    if (isFormValid) {
+    if (validateForm()) {
       try {
         const response = await createGame(game, userState.token);
         handleNewGame(response);
@@ -77,15 +95,14 @@ export default function PostGame() {
           genreIds: [],
         });
         setIsUploaded(false);
-        setIsError(false);
-        navigate("/");
       } catch (error: any) {
-        setError(error.message);
-        setIsError(true);
+        showToast("error", error.message, "Error");
+      } finally {
+        showToast("success", "Game posted successfully!", "Success");
+        navigate("/");
       }
     } else {
-      setError("Please fill all the fields properly.");
-      setIsError(true);
+      showToast("error", "Please fill all the fields properly.", "Error");
     }
   };
 
@@ -94,20 +111,31 @@ export default function PostGame() {
   ) => {
     const { id, value } = event.target;
     setGame({ ...game, [id]: value });
-    if (isError) {
-      setError("");
-      setIsError(false);
+    if (errorFields.includes(id)) {
+      setErrorFields((prevFields) =>
+        prevFields.filter((field) => field !== id)
+      );
     }
   };
 
   const handleGenreChange = (selectedOptions: readonly GenreOption[]) => {
     const selectedIds = selectedOptions.map((option) => option.value);
     setGame({ ...game, genreIds: selectedIds });
+    if (errorFields.includes("genreIds")) {
+      setErrorFields((prevFields) =>
+        prevFields.filter((field) => field !== "genreIds")
+      );
+    }
   };
 
   const handleImageUpload = (url: string) => {
     setGame((prevGame) => ({ ...prevGame, imageUrl: url }));
     setIsUploaded(true);
+    if (errorFields.includes("imageUrl")) {
+      setErrorFields((prevFields) =>
+        prevFields.filter((field) => field !== "imageUrl")
+      );
+    }
   };
 
   const clearImageUrl = () => {
@@ -150,45 +178,55 @@ export default function PostGame() {
           <Box flex="1">
             <form onSubmit={handlePostGame}>
               <VStack spacing={4} align="stretch">
-                {isError && (
-                  <Alert status="error" borderRadius={10}>
-                    <AlertIcon />
-                    <AlertTitle>{error}</AlertTitle>
-                  </Alert>
-                )}
-                <FormControl>
+                <FormControl isInvalid={errorFields.includes("title")}>
                   <Input
                     id="title"
                     value={game.title}
                     onChange={handleChange}
                     placeholder="Title"
                   />
+                  {errorFields.includes("title") && (
+                    <FormErrorMessage>Title is required.</FormErrorMessage>
+                  )}
                 </FormControl>
-                <FormControl>
+                <FormControl isInvalid={errorFields.includes("description")}>
                   <Textarea
                     id="description"
                     value={game.description}
                     onChange={handleChange}
                     placeholder="Description"
                   />
+                  {errorFields.includes("description") && (
+                    <FormErrorMessage>
+                      Description is required.
+                    </FormErrorMessage>
+                  )}
                 </FormControl>
-                <FormControl>
+                <FormControl isInvalid={errorFields.includes("publisher")}>
                   <Input
                     id="publisher"
                     value={game.publisher}
                     onChange={handleChange}
                     placeholder="Publisher"
                   />
+                  {errorFields.includes("publisher") && (
+                    <FormErrorMessage>Publisher is required.</FormErrorMessage>
+                  )}
                 </FormControl>
-                <FormControl>
+                <FormControl isInvalid={errorFields.includes("releaseDate")}>
                   <Input
                     id="releaseDate"
                     value={game.releaseDate}
                     type="datetime-local"
                     onChange={handleChange}
                   />
+                  {errorFields.includes("releaseDate") && (
+                    <FormErrorMessage>
+                      Release date is required.
+                    </FormErrorMessage>
+                  )}
                 </FormControl>
-                <FormControl>
+                <FormControl isInvalid={errorFields.includes("genreIds")}>
                   <Select
                     isMulti
                     name="genres"
@@ -196,7 +234,14 @@ export default function PostGame() {
                     onChange={handleGenreChange}
                     placeholder="Select Genres"
                     aria-label="Select Genres"
+                    styles={customSelectStyles}
+                    closeMenuOnSelect={false}
                   />
+                  {errorFields.includes("genreIds") && (
+                    <FormErrorMessage>
+                      At least one genre is required.
+                    </FormErrorMessage>
+                  )}
                 </FormControl>
                 <UploadWidget
                   setImageUrl={handleImageUpload}

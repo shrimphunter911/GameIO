@@ -86,7 +86,13 @@ const MyGames = () => {
     const getGames = async () => {
       try {
         const data = await searchMyGames(debouncedInput, page, token);
-        setMyGames([...myGames, ...data]);
+        const uniqueGames = [
+          ...myGames,
+          ...data.filter(
+            (newGame) => !myGames.some((game) => game.id === newGame.id)
+          ),
+        ];
+        setMyGames(uniqueGames);
       } catch (err: any) {
         if (err.message !== "Request canceled") setError(err.message);
       }

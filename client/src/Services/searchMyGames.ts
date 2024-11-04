@@ -1,3 +1,4 @@
+import { Game } from "../Interfaces/game";
 import apiClient from "./api-client";
 
 interface Props {
@@ -14,8 +15,8 @@ export const searchMyGames = async (
   token: string
 ) => {
   try {
-    const response = await apiClient.get(
-      `/games/mygames?search=${search}&publisher=${publisher}&releaseDate=${releaseDate}&sortByRating=${sortByRating}&genreId=${genreId}&limit=50&page=${page}`,
+    const response = await apiClient.get<Game[]>(
+      `/games/mygames?search=${search}&publisher=${publisher}&releaseDate=${releaseDate}&sortByRating=${sortByRating}&genreId=${genreId}&limit=5&page=${page}`,
       {
         headers: {
           "x-auth-token": token,

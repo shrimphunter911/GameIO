@@ -17,7 +17,7 @@ const generateRandomGameData = () => ({
   genreIds: [faker.number.int({ min: 1, max: 15 }), faker.number.int({ min: 1, max: 15 })],
 });
 
-const generateGames = async (token, numberOfGames = 10000) => {
+const generateGames = async (token, numberOfGames = 10) => {
   for (let i = 0; i < numberOfGames; i++) {
     const gameData = generateRandomGameData();
 
@@ -31,5 +31,5 @@ const generateGames = async (token, numberOfGames = 10000) => {
 };
 
 // Provide the token here
-const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzMwNjMyMTUyfQ.KQsHzhXamcJAQl_3LK7_CmyGGDoklzS0uIFMfb_h4pM";
+const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzMwNjkzMTM2fQ.LiwMgyGv0BzHhKeQcCQK1plD4mJhdvbdnYaa3NU4MT0";
 generateGames(token);

@@ -35,6 +35,7 @@ import { useUserContext } from "../Contexts/userContext";
 import { postReview } from "../Services/postReview";
 import { updateReview } from "../Services/updateReview";
 import Rating from "./Rating";
+import { showToast } from "../Services/showToast";
 
 const GameView = () => {
   const { genresState } = useGenresContext();
@@ -50,23 +51,13 @@ const GameView = () => {
   const [isEditing, setIsEditing] = useState(false);
   const { userState } = useUserContext();
 
-  useEffect(() => {
+  const getDetails = async () => {
     const controller = new AbortController();
     const getGame = async () => {
       try {
         const data = await fetchGame(controller.signal, params);
         setGame(data);
         setReviews(data.reviews || []);
-
-        if (userState.token) {
-          const response = await getIndividualReview(userState.token, params);
-          if (response && response.review) {
-            setReview(response);
-            setIsEditing(true);
-          } else {
-            setIsEditing(false);
-          }
-        }
       } catch (err: any) {
         if (err.message !== "Request canceled") setError(err.message);
       }
@@ -74,16 +65,43 @@ const GameView = () => {
 
     getGame();
     return () => controller.abort();
+  };
+
+  useEffect(() => {
+    const fetchReview = async () => {
+      if (userState.token) {
+        try {
+          const response = await getIndividualReview(userState.token, params);
+          if (response && response.review) {
+            setReview(response);
+            setIsEditing(true);
+          } else {
+            setIsEditing(false);
+          }
+        } catch (err: any) {
+          setError(err.message);
+        }
+      }
+    };
+
+    fetchReview();
+  }, [userState.token, params]);
+
+  useEffect(() => {
+    getDetails();
   }, []);
 
   const handlePostReview = async () => {
     try {
       const result = await postReview(userState.token, params, review);
       setReview(result);
-      setReviews([...reviews, result]);
       setIsEditing(true);
     } catch (error: any) {
       setError(error.message);
+      showToast("error", error, "Review");
+    } finally {
+      getDetails();
+      showToast("success", "Review posted", "Review");
     }
   };
 
@@ -91,15 +109,12 @@ const GameView = () => {
     try {
       const result = await updateReview(userState.token, params, review);
       setReview(result);
-      setReviews((prevReviews) =>
-        prevReviews.map((e) =>
-          e.id === result.id
-            ? { ...e, rated: result.rated, review: result.review }
-            : e
-        )
-      );
     } catch (error: any) {
       setError(error.message);
+      showToast("error", error, "Review");
+    } finally {
+      getDetails();
+      showToast("success", "Review updated", "Review");
     }
   };
 
@@ -154,7 +169,7 @@ const GameView = () => {
                 w={"100%"}
                 h={{ base: "100%", sm: "400px", lg: "500px" }}
               />
-              {game?.avg_rating !== undefined && (
+              {game?.avg_rating ? (
                 <Box
                   position="absolute"
                   bottom={2}
@@ -172,7 +187,7 @@ const GameView = () => {
                 >
                   {Number(game.avg_rating).toFixed(1)}
                 </Box>
-              )}
+              ) : null}
             </Flex>
             <Stack spacing={{ base: 6, md: 10 }}>
               <Box as={"header"}>
