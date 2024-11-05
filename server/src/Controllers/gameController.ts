@@ -5,6 +5,7 @@ import _ from "lodash";
 import { GameInterface } from "../Models/game";
 import { GameGanresInterface } from "../Models/game_genres";
 import client from "../config/elasticSearch";
+import { SearchResponse } from "@elastic/elasticsearch/lib/api/types";
 
 const gameModel = db.game as ModelStatic<GameInterface>;
 const game_genresModel = db.game_genres as ModelStatic<GameGanresInterface>;
@@ -68,7 +69,6 @@ export const createGame = async (req: Request, res: Response) => {
 export const getGames = async (req: Request, res: Response) => {
   const userId = req.user ? req.user.id : null;
   try {
-    // Elastic get goes here
     const page = parseInt(req.query.page as string) - 1 || 0;
     const limit = parseInt(req.query.limit as string) || 12;
     const offset = page * limit;
@@ -87,74 +87,42 @@ export const getGames = async (req: Request, res: Response) => {
         ? req.query.sortByRating
         : null;
 
-    const releaseDateRange = releaseYear
-      ? {
-          [Op.between]: [
-            new Date(releaseYear, 0, 1).toISOString(),
-            new Date(releaseYear, 11, 31, 23, 59, 59).toISOString(),
-          ],
-        }
-      : undefined;
-
-    const whereConditions: any = {
-      title: {
-        [Op.iLike]: `%${search}%`,
+    // Elasticsearch query instead of Sequelize query
+    const elasticQuery: any = {
+      index: "games",
+      from: offset,
+      size: limit,
+      body: {
+        query: {
+          bool: {
+            must: [
+              { match: { title: search } },
+              ...(publisher ? [{ match: { publisher: publisher } }] : []),
+              ...(releaseYear
+                ? [
+                    {
+                      range: {
+                        releaseDate: {
+                          gte: `${releaseYear}-01-01`,
+                          lte: `${releaseYear}-12-31`,
+                        },
+                      },
+                    },
+                  ]
+                : []),
+            ],
+            ...(genreId ? { filter: [{ term: { genreIds: genreId } }] } : {}),
+          },
+        },
+        ...(sortByRating && {
+          sort: [{ avg_rating: { order: sortByRating } }],
+        }),
       },
-      ...(releaseDateRange && { releaseDate: releaseDateRange }),
-      ...(publisher && { publisher: { [Op.iLike]: `%${publisher}%` } }),
     };
 
-    if (userId) {
-      whereConditions.userId = userId;
-    }
-
-    const games = await gameModel.findAll({
-      where: whereConditions,
-      attributes: [
-        "id",
-        "title",
-        "description",
-        "releaseDate",
-        "publisher",
-        "imageUrl",
-        [literal("ROUND(COALESCE(AVG(ratings.rated), 0), 2)"), "avg_rating"],
-        [
-          literal(`(
-            SELECT ARRAY_AGG("genreId")
-            FROM "game_genres" AS "game_genres"
-            WHERE "game_genres"."gameId" = "game"."id"
-          )`),
-          "genreIds",
-        ],
-      ],
-      include: [
-        {
-          model: ratingModel,
-          attributes: [],
-        },
-        {
-          model: game_genresModel,
-          required: true,
-          attributes: [],
-          include: [
-            {
-              model: genreModel,
-              where: genreId ? { id: genreId } : undefined,
-              attributes: [],
-            },
-          ],
-        },
-      ],
-      group: ["game.id"],
-      ...(sortByRating && {
-        order: [
-          [literal("ROUND(COALESCE(AVG(ratings.rated), 0), 2)"), sortByRating],
-        ],
-      }),
-      limit,
-      subQuery: false,
-      offset,
-    });
+    // Using type assertion for response
+    const response = (await client.search(elasticQuery)) as SearchResponse<any>;
+    const games = response.hits.hits.map((hit) => hit._source);
 
     res.status(200).json(games);
   } catch (error) {

@@ -70,7 +70,6 @@ exports.createGame = createGame;
 const getGames = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.user ? req.user.id : null;
     try {
-        // Elastic get goes here
         const page = parseInt(req.query.page) - 1 || 0;
         const limit = parseInt(req.query.limit) || 12;
         const offset = page * limit;
@@ -87,58 +86,35 @@ const getGames = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const sortByRating = req.query.sortByRating === "asc" || req.query.sortByRating === "desc"
             ? req.query.sortByRating
             : null;
-        const releaseDateRange = releaseYear
-            ? {
-                [sequelize_1.Op.between]: [
-                    new Date(releaseYear, 0, 1).toISOString(),
-                    new Date(releaseYear, 11, 31, 23, 59, 59).toISOString(),
-                ],
-            }
-            : undefined;
-        const whereConditions = Object.assign(Object.assign({ title: {
-                [sequelize_1.Op.iLike]: `%${search}%`,
-            } }, (releaseDateRange && { releaseDate: releaseDateRange })), (publisher && { publisher: { [sequelize_1.Op.iLike]: `%${publisher}%` } }));
-        if (userId) {
-            whereConditions.userId = userId;
-        }
-        const games = yield gameModel.findAll(Object.assign(Object.assign({ where: whereConditions, attributes: [
-                "id",
-                "title",
-                "description",
-                "releaseDate",
-                "publisher",
-                "imageUrl",
-                [(0, sequelize_1.literal)("ROUND(COALESCE(AVG(ratings.rated), 0), 2)"), "avg_rating"],
-                [
-                    (0, sequelize_1.literal)(`(
-            SELECT ARRAY_AGG("genreId")
-            FROM "game_genres" AS "game_genres"
-            WHERE "game_genres"."gameId" = "game"."id"
-          )`),
-                    "genreIds",
-                ],
-            ], include: [
-                {
-                    model: ratingModel,
-                    attributes: [],
-                },
-                {
-                    model: game_genresModel,
-                    required: true,
-                    attributes: [],
-                    include: [
-                        {
-                            model: genreModel,
-                            where: genreId ? { id: genreId } : undefined,
-                            attributes: [],
-                        },
-                    ],
-                },
-            ], group: ["game.id"] }, (sortByRating && {
-            order: [
-                [(0, sequelize_1.literal)("ROUND(COALESCE(AVG(ratings.rated), 0), 2)"), sortByRating],
-            ],
-        })), { limit, subQuery: false, offset }));
+        // Elasticsearch query instead of Sequelize query
+        const elasticQuery = {
+            index: "games",
+            from: offset,
+            size: limit,
+            body: Object.assign({ query: {
+                    bool: Object.assign({ must: [
+                            { match: { title: search } },
+                            ...(publisher ? [{ match: { publisher: publisher } }] : []),
+                            ...(releaseYear
+                                ? [
+                                    {
+                                        range: {
+                                            releaseDate: {
+                                                gte: `${releaseYear}-01-01`,
+                                                lte: `${releaseYear}-12-31`,
+                                            },
+                                        },
+                                    },
+                                ]
+                                : []),
+                        ] }, (genreId ? { filter: [{ term: { genreIds: genreId } }] } : {})),
+                } }, (sortByRating && {
+                sort: [{ avg_rating: { order: sortByRating } }],
+            })),
+        };
+        // Using type assertion for response
+        const response = (yield elasticSearch_1.default.search(elasticQuery));
+        const games = response.hits.hits.map((hit) => hit._source);
         res.status(200).json(games);
     }
     catch (error) {
