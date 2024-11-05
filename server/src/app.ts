@@ -9,6 +9,7 @@ const port = 3000;
 import users from "./Routes/userRouter";
 import auth from "./Routes/authRouter";
 import games from "./Routes/gameRouter";
+import { getAllGamesFromElastic } from "./Controllers/elasticShowAll";
 
 if (!config.get("jwtPrivateKey")) {
   console.log("Fatal Error: jwtPrivateKey is not defined");
@@ -21,6 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/users", users);
 app.use("/api/auth", auth);
 app.use("/api/games", games);
+app.use("/api/elastic", getAllGamesFromElastic);
 
 app.listen(port, hostname, async () => {
   if ("sequelize" in db) {

@@ -16,6 +16,7 @@ exports.deleteGame = exports.getGame = exports.updateGame = exports.getGames = e
 const Models_1 = __importDefault(require("../Models"));
 const sequelize_1 = require("sequelize");
 const lodash_1 = __importDefault(require("lodash"));
+const elasticSearch_1 = __importDefault(require("../config/elasticSearch"));
 const gameModel = Models_1.default.game;
 const game_genresModel = Models_1.default.game_genres;
 const genreModel = Models_1.default.genre;
@@ -45,6 +46,20 @@ const createGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             genreId: genreId,
         }));
         yield game_genresModel.bulkCreate(gameGenres);
+        // Indexing games in elastic
+        yield elasticSearch_1.default.index({
+            index: "games",
+            id: `${game.id}`,
+            body: {
+                title: game.title,
+                releaseDate: game.releaseDate,
+                publisher: game.publisher,
+                imageUrl: game.imageUrl,
+                userId: game.userId,
+                avg_rating: 0.0,
+                genreIds: req.body.genreIds,
+            },
+        });
         res.status(201).json(Object.assign(Object.assign({}, lodash_1.default.omit(game.dataValues, ["userId"])), { genreIds: givenGenres }));
     }
     catch (error) {

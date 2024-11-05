@@ -4,6 +4,7 @@ import { col, fn, literal, ModelStatic, Op } from "sequelize";
 import _ from "lodash";
 import { GameInterface } from "../Models/game";
 import { GameGanresInterface } from "../Models/game_genres";
+import client from "../config/elasticSearch";
 
 const gameModel = db.game as ModelStatic<GameInterface>;
 const game_genresModel = db.game_genres as ModelStatic<GameGanresInterface>;
@@ -39,6 +40,21 @@ export const createGame = async (req: Request, res: Response) => {
     }));
 
     await game_genresModel.bulkCreate(gameGenres);
+
+    // Indexing games in elastic
+    await client.index({
+      index: "games",
+      id: `${game.id}`,
+      body: {
+        title: game.title,
+        releaseDate: game.releaseDate,
+        publisher: game.publisher,
+        imageUrl: game.imageUrl,
+        userId: game.userId,
+        avg_rating: 0.0,
+        genreIds: req.body.genreIds,
+      },
+    });
 
     res.status(201).json({
       ..._.omit(game.dataValues, ["userId"]),
