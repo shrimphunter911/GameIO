@@ -68,6 +68,7 @@ export const createGame = async (req: Request, res: Response) => {
 export const getGames = async (req: Request, res: Response) => {
   const userId = req.user ? req.user.id : null;
   try {
+    // Elastic get goes here
     const page = parseInt(req.query.page as string) - 1 || 0;
     const limit = parseInt(req.query.limit as string) || 12;
     const offset = page * limit;

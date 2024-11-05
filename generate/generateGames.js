@@ -9,7 +9,7 @@ const getRandomImageUrl = () => {
 };
 
 const generateRandomGameData = () => ({
-  title: faker.commerce.productName(),
+  title: faker.company.name(),
   description: faker.lorem.sentences(10),
   publisher: faker.company.name(),
   imageUrl: getRandomImageUrl(),
@@ -17,7 +17,7 @@ const generateRandomGameData = () => ({
   genreIds: [faker.number.int({ min: 1, max: 15 }), faker.number.int({ min: 1, max: 15 })],
 });
 
-const generateGames = async (token, numberOfGames = 1000) => {
+const generateGames = async (token, numberOfGames = 400000) => {
   for (let i = 0; i < numberOfGames; i++) {
     const gameData = generateRandomGameData();
 

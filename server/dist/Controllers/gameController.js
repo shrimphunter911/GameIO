@@ -70,6 +70,7 @@ exports.createGame = createGame;
 const getGames = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.user ? req.user.id : null;
     try {
+        // Elastic get goes here
         const page = parseInt(req.query.page) - 1 || 0;
         const limit = parseInt(req.query.limit) || 12;
         const offset = page * limit;
