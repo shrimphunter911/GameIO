@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import db from "./Models";
+import createGameIndex from "./elasticSearchSetup";
 const config = require("config");
 const app = express();
 const hostname = "127.0.0.1";
@@ -24,6 +25,11 @@ app.use("/api/games", games);
 app.listen(port, hostname, async () => {
   if ("sequelize" in db) {
     await db.sequelize.sync();
+    try {
+      await createGameIndex();
+    } catch (err: any) {
+      console.log(err);
+    }
     console.log(`Server running at http://${hostname}:${port}/`);
   } else {
     console.error("Sequelize instance not found in db object.");

@@ -189,8 +189,7 @@ export const updateGame = async (req: Request, res: Response) => {
 export const getGame = async (req: Request, res: Response) => {
   try {
     const gameId = req.params.id;
-    let game = await gameModel.findOne({
-      where: { id: gameId },
+    const game = await gameModel.findByPk(gameId, {
       attributes: [
         "id",
         "title",
@@ -230,13 +229,13 @@ export const getGame = async (req: Request, res: Response) => {
       return res.status(404).send("Game not found");
     }
 
-    let genres = await game_genresModel.findAll({
+    const genres = await game_genresModel.findAll({
       where: {
         gameId: gameId,
       },
     });
 
-    let genreIds = genres.map((genre) => genre.genreId);
+    const genreIds = genres.map((genre) => genre.genreId);
 
     res.status(200).json({
       ..._.omit(game.dataValues, ["userId"]),

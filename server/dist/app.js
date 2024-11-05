@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const Models_1 = __importDefault(require("./Models"));
+const elasticSearchSetup_1 = __importDefault(require("./elasticSearchSetup"));
 const config = require("config");
 const app = (0, express_1.default)();
 const hostname = "127.0.0.1";
@@ -35,6 +36,12 @@ app.use("/api/games", gameRouter_1.default);
 app.listen(port, hostname, () => __awaiter(void 0, void 0, void 0, function* () {
     if ("sequelize" in Models_1.default) {
         yield Models_1.default.sequelize.sync();
+        try {
+            yield (0, elasticSearchSetup_1.default)();
+        }
+        catch (err) {
+            console.log(err);
+        }
         console.log(`Server running at http://${hostname}:${port}/`);
     }
     else {

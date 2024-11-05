@@ -167,8 +167,7 @@ exports.updateGame = updateGame;
 const getGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const gameId = req.params.id;
-        let game = yield gameModel.findOne({
-            where: { id: gameId },
+        const game = yield gameModel.findByPk(gameId, {
             attributes: [
                 "id",
                 "title",
@@ -206,12 +205,12 @@ const getGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (!game) {
             return res.status(404).send("Game not found");
         }
-        let genres = yield game_genresModel.findAll({
+        const genres = yield game_genresModel.findAll({
             where: {
                 gameId: gameId,
             },
         });
-        let genreIds = genres.map((genre) => genre.genreId);
+        const genreIds = genres.map((genre) => genre.genreId);
         res.status(200).json(Object.assign(Object.assign({}, lodash_1.default.omit(game.dataValues, ["userId"])), { genreIds }));
     }
     catch (error) {
