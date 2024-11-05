@@ -183,6 +183,20 @@ export const updateGame = async (req: Request, res: Response) => {
       imageUrl: req.body.imageUrl || game.imageUrl,
     });
 
+    await client.update({
+      index: "games",
+      id: gameId,
+      doc: {
+        title: req.body.title || game.title,
+        description: req.body.description || game.description,
+        releaseDate: req.body.releaseDate
+          ? new Date(req.body.releaseDate).toISOString()
+          : game.releaseDate,
+        publisher: req.body.publisher || game.publisher,
+        imageUrl: req.body.imageUrl || game.imageUrl,
+      },
+    });
+
     res.status(201).json({
       ..._.omit(updatedGame.dataValues, ["userId"]),
       genreIds: req.body.genreIds,
@@ -291,6 +305,11 @@ export const deleteGame = async (req: Request, res: Response) => {
     });
 
     game.destroy();
+
+    await client.delete({
+      index: "games",
+      id: gameId,
+    });
     res.status(200).send("Successfully deleted");
   } catch (error) {
     res.status(400).send(error);

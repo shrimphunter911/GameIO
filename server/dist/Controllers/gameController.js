@@ -171,6 +171,19 @@ const updateGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             publisher: req.body.publisher || game.publisher,
             imageUrl: req.body.imageUrl || game.imageUrl,
         });
+        yield elasticSearch_1.default.update({
+            index: "games",
+            id: gameId,
+            doc: {
+                title: req.body.title || game.title,
+                description: req.body.description || game.description,
+                releaseDate: req.body.releaseDate
+                    ? new Date(req.body.releaseDate).toISOString()
+                    : game.releaseDate,
+                publisher: req.body.publisher || game.publisher,
+                imageUrl: req.body.imageUrl || game.imageUrl,
+            },
+        });
         res.status(201).json(Object.assign(Object.assign({}, lodash_1.default.omit(updatedGame.dataValues, ["userId"])), { genreIds: req.body.genreIds }));
     }
     catch (error) {
@@ -263,6 +276,10 @@ const deleteGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             },
         });
         game.destroy();
+        yield elasticSearch_1.default.delete({
+            index: "games",
+            id: gameId,
+        });
         res.status(200).send("Successfully deleted");
     }
     catch (error) {
