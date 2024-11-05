@@ -243,6 +243,18 @@ export const getGame = async (req: Request, res: Response) => {
 
     const genreIds = genres.map((genre) => genre.genreId);
 
+    const avg_rating = game.dataValues.avg_rating;
+
+    if (avg_rating !== null) {
+      await client.update({
+        index: "games",
+        id: gameId,
+        doc: {
+          avg_rating: parseFloat(avg_rating),
+        },
+      });
+    }
+
     res.status(200).json({
       ..._.omit(game.dataValues, ["userId"]),
       genreIds,

@@ -13,7 +13,7 @@ const createGameIndex = async () => {
             publisher: { type: "text" },
             imageUrl: { type: "text" },
             userId: { type: "integer" },
-            avg_rating: { type: "double" },
+            avg_rating: { type: "float" },
             genreIds: { type: "integer" },
           },
         },

@@ -225,6 +225,16 @@ const getGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             },
         });
         const genreIds = genres.map((genre) => genre.genreId);
+        const avg_rating = game.dataValues.avg_rating;
+        if (avg_rating !== null) {
+            yield elasticSearch_1.default.update({
+                index: "games",
+                id: gameId,
+                doc: {
+                    avg_rating: parseFloat(avg_rating),
+                },
+            });
+        }
         res.status(200).json(Object.assign(Object.assign({}, lodash_1.default.omit(game.dataValues, ["userId"])), { genreIds }));
     }
     catch (error) {
