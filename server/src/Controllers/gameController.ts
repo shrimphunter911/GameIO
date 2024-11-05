@@ -1,17 +1,26 @@
-import { Request, Response } from "express";
+import { query, Request, Response } from "express";
 import db, { ModelWithAssociations } from "../Models";
 import { col, fn, literal, ModelStatic, Op } from "sequelize";
 import _ from "lodash";
 import { GameInterface } from "../Models/game";
 import { GameGanresInterface } from "../Models/game_genres";
 import client from "../config/elasticSearch";
-import { SearchResponse } from "@elastic/elasticsearch/lib/api/types";
 
 const gameModel = db.game as ModelStatic<GameInterface>;
 const game_genresModel = db.game_genres as ModelStatic<GameGanresInterface>;
 const genreModel = db.genre as ModelStatic<ModelWithAssociations>;
 const ratingModel = db.rating as ModelStatic<ModelWithAssociations>;
 const userModel = db.rating as ModelStatic<ModelWithAssociations>;
+
+interface GameForES {
+  id?: string;
+  releaseDate: string;
+  publisher: string;
+  imageUrl: string;
+  userId: number;
+  avg_rating: number;
+  genreIds: number[];
+}
 
 export const createGame = async (req: Request, res: Response) => {
   try {
@@ -87,7 +96,6 @@ export const getGames = async (req: Request, res: Response) => {
         ? req.query.sortByRating
         : null;
 
-    // Elasticsearch query instead of Sequelize query
     const elasticQuery: any = {
       index: "games",
       from: offset,
@@ -96,8 +104,15 @@ export const getGames = async (req: Request, res: Response) => {
         query: {
           bool: {
             must: [
-              { match: { title: search } },
-              ...(publisher ? [{ match: { publisher: publisher } }] : []),
+              search
+                ? { match_phrase_prefix: { title: search } }
+                : { match_all: {} },
+              publisher
+                ? { match: { publisher: publisher } }
+                : { match_all: {} },
+            ],
+            filter: [
+              ...(genreId ? [{ term: { genreIds: genreId } }] : []),
               ...(releaseYear
                 ? [
                     {
@@ -110,19 +125,25 @@ export const getGames = async (req: Request, res: Response) => {
                     },
                   ]
                 : []),
+              ...(userId ? [{ term: { userId: userId } }] : []),
             ],
-            ...(genreId ? { filter: [{ term: { genreIds: genreId } }] } : {}),
           },
         },
-        ...(sortByRating && {
-          sort: [{ avg_rating: { order: sortByRating } }],
-        }),
+        ...(sortByRating
+          ? { sort: [{ avg_rating: { order: sortByRating } }] }
+          : {}),
       },
     };
 
-    // Using type assertion for response
-    const response = (await client.search(elasticQuery)) as SearchResponse<any>;
-    const games = response.hits.hits.map((hit) => hit._source);
+    const { hits } = await client.search(elasticQuery);
+
+    const games = hits.hits.map((hit) => {
+      const { userId, ...gameData } = hit._source as GameForES;
+      return {
+        ...gameData,
+        id: parseInt(hit._id!),
+      };
+    });
 
     res.status(200).json(games);
   } catch (error) {
