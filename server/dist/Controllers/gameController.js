@@ -70,7 +70,7 @@ const getGames = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             : undefined;
         const sortByRating = req.query.sortByRating === "asc" || req.query.sortByRating === "desc"
             ? req.query.sortByRating
-            : "asc";
+            : null;
         const releaseDateRange = releaseYear
             ? {
                 [sequelize_1.Op.between]: [
@@ -85,16 +85,14 @@ const getGames = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (userId) {
             whereConditions.userId = userId;
         }
-        const games = yield gameModel.findAll({
-            where: whereConditions,
-            attributes: [
+        const games = yield gameModel.findAll(Object.assign(Object.assign({ where: whereConditions, attributes: [
                 "id",
                 "title",
                 "description",
                 "releaseDate",
                 "publisher",
                 "imageUrl",
-                [(0, sequelize_1.literal)("ROUND(AVG(ratings.rated), 2)"), "avg_rating"],
+                [(0, sequelize_1.literal)("ROUND(COALESCE(AVG(ratings.rated), 0), 2)"), "avg_rating"],
                 [
                     (0, sequelize_1.literal)(`(
             SELECT ARRAY_AGG("genreId")
@@ -103,8 +101,7 @@ const getGames = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
           )`),
                     "genreIds",
                 ],
-            ],
-            include: [
+            ], include: [
                 {
                     model: ratingModel,
                     attributes: [],
@@ -121,13 +118,11 @@ const getGames = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                         },
                     ],
                 },
+            ], group: ["game.id"] }, (sortByRating && {
+            order: [
+                [(0, sequelize_1.literal)("ROUND(COALESCE(AVG(ratings.rated), 0), 2)"), sortByRating],
             ],
-            group: ["game.id"],
-            order: [[(0, sequelize_1.literal)("ROUND(AVG(ratings.rated), 2)"), sortByRating]],
-            limit,
-            subQuery: false,
-            offset,
-        });
+        })), { limit, subQuery: false, offset }));
         res.status(200).json(games);
     }
     catch (error) {

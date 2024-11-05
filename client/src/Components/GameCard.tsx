@@ -1,12 +1,4 @@
-import {
-  Box,
-  Card,
-  CardBody,
-  Flex,
-  Heading,
-  Image,
-  Text,
-} from "@chakra-ui/react";
+import { Box, Card, CardBody, Flex, Heading, Image } from "@chakra-ui/react";
 import { Game } from "../Interfaces/game";
 
 interface Props {
