@@ -7,7 +7,7 @@ export const loginUser = async (formData: {
   try {
     const response = await apiClient.post("/auth", formData);
     return response.data;
-  } catch (error) {
-    throw new Error("Login failed. Please try again.");
+  } catch (error: any) {
+    throw new Error(error.response.data);
   }
 };

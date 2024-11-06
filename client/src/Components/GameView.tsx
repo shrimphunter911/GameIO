@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import {
   Box,
@@ -11,7 +11,6 @@ import {
   VStack,
   Heading,
   SimpleGrid,
-  StackDivider,
   useColorModeValue,
   List,
   ListItem,
@@ -21,10 +20,11 @@ import {
   HStack,
   Card,
   CardBody,
-  CardFooter,
   Divider,
   Button,
   Textarea,
+  Badge,
+  Spinner,
 } from "@chakra-ui/react";
 import { Game } from "../Interfaces/game";
 import fetchGame from "../Services/fetchGame";
@@ -44,6 +44,7 @@ const GameView = () => {
   const [game, setGame] = useState<Game>();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [err, setError] = useState("");
+  const [loading, setLoading] = useState(true);
   const [review, setReview] = useState<Review>({
     gameId: Number(params.gameId),
     review: "",
@@ -51,16 +52,20 @@ const GameView = () => {
   });
   const [isEditing, setIsEditing] = useState(false);
   const { userState } = useUserContext();
+  const navigate = useNavigate();
 
   const getDetails = async () => {
     const controller = new AbortController();
     const getGame = async () => {
+      setLoading(true);
       try {
         const data = await fetchGame(controller.signal, params);
         setGame(data);
         setReviews(data.reviews || []);
       } catch (err: any) {
         if (err.message !== "Request canceled") setError(err.message);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -97,12 +102,11 @@ const GameView = () => {
       const result = await postReview(userState.token, params, review);
       setReview(result);
       setIsEditing(true);
+      getDetails();
+      showToast("success", "Review posted", "Review");
     } catch (error: any) {
       setError(error.message);
       showToast("error", error, "Review");
-    } finally {
-      getDetails();
-      showToast("success", "Review posted", "Review");
     }
   };
 
@@ -110,12 +114,11 @@ const GameView = () => {
     try {
       const result = await updateReview(userState.token, params, review);
       setReview(result);
+      getDetails();
+      showToast("success", "Review updated", "Review");
     } catch (error: any) {
       setError(error.message);
       showToast("error", error, "Review");
-    } finally {
-      getDetails();
-      showToast("success", "Review updated", "Review");
     }
   };
 
@@ -130,20 +133,13 @@ const GameView = () => {
   };
 
   const convertDate = (givenDate: string) => {
-    const date = new Date(givenDate);
-    return date.toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
+    return format(new Date(givenDate), "MMM dd, yyyy");
   };
 
   const getGenres = (genreIds: number[]) => {
-    const genreNames = genresState.genres.map((genre) => {
-      if (genreIds.includes(genre.id)) {
-        return genre.name;
-      }
-    });
+    const genreNames = genresState.genres
+      .filter((genre) => genreIds.includes(genre.id))
+      .map((genre) => genre.name);
     return genreNames;
   };
 
@@ -151,15 +147,23 @@ const GameView = () => {
     return format(new Date(dateString), "hh:mm a, dd MMM, yyyy");
   }
 
+  const redirectNotLoggedIn = () => {
+    showToast("error", "Please log in first", "Not Logged In");
+    navigate("/login");
+  };
+
   return (
     <>
-      {err && (
+      {loading ? (
+        <Flex justify="center" align="center" minH="100vh">
+          <Spinner size="xl" />
+        </Flex>
+      ) : err ? (
         <Alert borderRadius={10} status="error">
           <AlertIcon />
           <AlertTitle>{err}</AlertTitle>
         </Alert>
-      )}
-      {game ? (
+      ) : game ? (
         <Container maxW={"7xl"}>
           <SimpleGrid
             columns={{ base: 1, lg: 2 }}
@@ -181,16 +185,20 @@ const GameView = () => {
                   position="absolute"
                   bottom={2}
                   right={2}
-                  bg="red.500"
+                  bg="rgba(255, 0, 0, 0.9)"
                   color="white"
                   px={2}
                   py={2}
-                  borderRadius="md"
+                  borderRadius="lg"
                   fontSize="lg"
                   fontWeight="bold"
                   display="flex"
                   alignItems="center"
                   justifyContent="center"
+                  style={{
+                    clipPath:
+                      "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+                  }}
                 >
                   {Number(game.avg_rating).toFixed(1)}
                 </Box>
@@ -214,35 +222,19 @@ const GameView = () => {
                 </Text>
               </Box>
 
-              <Stack
-                spacing={{ base: 4, sm: 6 }}
-                direction={"column"}
-                divider={
-                  <StackDivider
-                    borderColor={useColorModeValue("gray.200", "gray.600")}
-                  />
-                }
-              >
+              <Stack spacing={{ base: 4, sm: 6 }} direction={"column"}>
                 <VStack spacing={{ base: 4, sm: 6 }}></VStack>
                 <Box>
                   <Text
                     fontSize={{ base: "16px", lg: "18px" }}
                     color={useColorModeValue("yellow.500", "yellow.300")}
                     fontWeight={"500"}
-                    textTransform={"uppercase"}
                     mb={"4"}
                   >
                     {convertDate(game?.releaseDate)}
                   </Text>
 
                   <List spacing={2}>
-                    {getGenres(game?.genreIds).map((genre, index) => (
-                      <ListItem key={index}>
-                        <Text as={"span"} fontWeight={"bold"}>
-                          {genre}
-                        </Text>
-                      </ListItem>
-                    ))}
                     <ListItem>
                       <Text as={"span"} fontWeight={"bold"}>
                         Description:
@@ -250,6 +242,24 @@ const GameView = () => {
                       {game?.description}
                     </ListItem>
                   </List>
+                  <HStack
+                    paddingTop={4}
+                    spacing={2}
+                    justifyContent="flex-start"
+                  >
+                    {getGenres(game?.genreIds).map((genre, index) => (
+                      <Badge
+                        key={index}
+                        borderRadius="20rem"
+                        px={4}
+                        py={2}
+                        bg="teal.500"
+                        color="white"
+                      >
+                        <Text as={"span"}>{genre}</Text>
+                      </Badge>
+                    ))}
+                  </HStack>
                 </Box>
               </Stack>
             </Stack>
@@ -295,7 +305,7 @@ const GameView = () => {
             </Box>
           </Box>
 
-          {userState.token && (
+          {userState.token ? (
             <Box mt={10}>
               <Heading size="md" mb={4}>
                 Rate & Review
@@ -317,6 +327,18 @@ const GameView = () => {
                 onClick={isEditing ? handleUpdateReview : handlePostReview}
               >
                 {isEditing ? "Update Review" : "Submit Review"}
+              </Button>
+            </Box>
+          ) : (
+            <Box mt={10}>
+              <Heading size="md" mb={4}>
+                Rate & Review
+              </Heading>
+              <InteractiveRating initialRating={0} />
+
+              <Textarea placeholder="Write your review here..." mt={4} />
+              <Button mt={4} colorScheme="blue" onClick={redirectNotLoggedIn}>
+                Submit Review
               </Button>
             </Box>
           )}

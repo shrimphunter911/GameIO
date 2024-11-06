@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useGenresContext } from "../Contexts/genresContext";
 import { Game } from "../Interfaces/game";
 import {
@@ -22,7 +22,7 @@ const MyGames = () => {
   const [error, setError] = useState("");
   const [page, setPage] = useState<number>(1);
   const [isBottom, setIsBottom] = useState<boolean>(false);
-  const [loading, setLoading] = useState(false); // Add loading state
+  const [loading, setLoading] = useState(false);
   const genres = genresState.genres;
   const token = userState.token;
   let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -39,14 +39,14 @@ const MyGames = () => {
   useEffect(() => {
     const handleSearch = async () => {
       try {
-        setLoading(true); // Start loading
+        setLoading(true);
         setPage(1);
         const result = await searchMyGames(debouncedInput, 1, token);
         setMyGames(result);
       } catch (error: any) {
         setError(error.message);
       } finally {
-        setLoading(false); // End loading
+        setLoading(false);
       }
     };
 
@@ -129,41 +129,45 @@ const MyGames = () => {
 
   return (
     <>
-      <HStack>
-        <Box position="relative" width="100%">
-          <Input
-            placeholder="Search My Games"
-            variant="outline"
-            type="text"
-            id="search"
-            value={input.search}
-            onChange={handleChange}
-            pr="40px"
-          />
-          <AdvancedSearchDrawer
-            input={input}
-            onChange={handleChange}
-            onSortChange={handleSortChange}
-            genres={genres}
-          />
-        </Box>
-      </HStack>
-      <SimpleGrid
-        columns={{ sm: 2, md: 2, lg: 3, xl: 3 }}
-        padding="20px"
-        spacing={20}
-      >
-        {myGames.map((game) => (
-          <Link key={game.id} to={`/games/${game.id}`}>
-            <MyGameCard key={game.id} game={game}></MyGameCard>
-          </Link>
-        ))}
-      </SimpleGrid>
-      {loading && (
-        <Center mt={4} mb={4}>
-          <Spinner size="lg" color="blue.500" />
-        </Center>
-      )}
+      <Box width="100%" padding="20px">
+        <HStack maxW="1200px" mx="auto" mb="4" width="100%">
+          <Box position="relative" width="100%">
+            <Input
+              placeholder="Search My Games"
+              variant="outline"
+              type="text"
+              id="search"
+              value={input.search}
+              onChange={handleChange}
+              pr="40px"
+              width="100%"
+            />
+            <AdvancedSearchDrawer
+              input={input}
+              onChange={handleChange}
+              onSortChange={handleSortChange}
+              genres={genres}
+            />
+          </Box>
+        </HStack>
+        <SimpleGrid
+          columns={{ sm: 2, md: 2, lg: 3, xl: 3 }}
+          spacing="20px"
+          maxW="1200px"
+          mx="auto"
+        >
+          {myGames.map((game) => (
+            <Link key={game.id} to={`/games/${game.id}`}>
+              <MyGameCard key={game.id} game={game}></MyGameCard>
+            </Link>
+          ))}
+        </SimpleGrid>
+        {loading && (
+          <Center mt={4} mb={4}>
+            <Spinner size="lg" color="blue.500" />
+          </Center>
+        )}
+      </Box>
     </>
   );
 };

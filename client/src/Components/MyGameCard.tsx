@@ -10,7 +10,6 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { Game } from "../Interfaces/game";
-import Rating from "./Rating";
 import { Link, useNavigate } from "react-router-dom";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -31,6 +30,8 @@ const MyGameCard = ({ game }: Props) => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  const releaseYear = new Date(game.releaseDate).getFullYear();
+
   const handleDelete = async () => {
     try {
       const response = await deleteGame(userState.token, game.id);
@@ -39,12 +40,11 @@ const MyGameCard = ({ game }: Props) => {
         payload: gamesState.games.filter((item) => item.id !== game.id),
       });
       setDeleteDialogOpen(false);
+      showToast("success", "Successfully removed", "Delete Game");
+      navigate("/");
     } catch (error: any) {
       setError(error.message);
       showToast("error", error, "Delete Game");
-    } finally {
-      showToast("success", "Successfully removed", "Delete Game");
-      navigate("/");
     }
   };
 
@@ -58,39 +58,72 @@ const MyGameCard = ({ game }: Props) => {
     <Card borderRadius={10} overflow="hidden">
       <Flex position="relative">
         <Image objectFit="cover" boxSize="425px" src={game.imageUrl} />
+
+        {/* Display Release Year */}
+        <Box
+          position="absolute"
+          top={2}
+          left={2}
+          bg="rgba(208, 50, 50, 0.9)"
+          color="white"
+          px={2}
+          py={1}
+          borderRadius="md"
+          fontSize="md"
+          fontWeight="bold"
+        >
+          {releaseYear}
+        </Box>
+
+        {/* Display Rating */}
         {game.avg_rating ? (
           <Box
             position="absolute"
             bottom={2}
             right={2}
-            bg="red.500"
+            bg="rgba(255, 0, 0, 0.9)"
             color="white"
             px={2}
             py={2}
-            borderRadius="md"
+            borderRadius="lg"
             fontSize="lg"
             fontWeight="bold"
             display="flex"
             alignItems="center"
             justifyContent="center"
+            style={{
+              clipPath:
+                "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+            }}
           >
             {Number(game.avg_rating).toFixed(1)}
           </Box>
         ) : null}
       </Flex>
+
       <CardBody>
         <Heading fontSize="2xl">{game.title}</Heading>
-        <HStack justifyContent="space-between">
-          <HStack>
-            <Link key={game.id} to={`/games/edit/${game.id}`}>
-              <Button>Edit</Button>
-            </Link>
-            <Button onClick={handleTrashClick}>
-              <Trash2 />
+        <Text fontSize="md" mb={4}>
+          {game.publisher}
+        </Text>
+
+        {/* Edit and Trash buttons with original styles */}
+        <HStack justify="space-between" align="center">
+          <Link key={game.id} to={`/games/edit/${game.id}`}>
+            <Button colorScheme="teal" variant="outline">
+              Edit
             </Button>
-          </HStack>
+          </Link>
+          <Button
+            onClick={handleTrashClick}
+            colorScheme="red"
+            variant="outline"
+          >
+            <Trash2 />
+          </Button>
         </HStack>
       </CardBody>
+
       <ConfirmDeleteDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}

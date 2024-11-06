@@ -1,3 +1,4 @@
+import { Game } from "../Interfaces/game";
 import apiClient from "./api-client";
 
 export const updateGame = async (
@@ -13,11 +14,11 @@ export const updateGame = async (
   gameId?: string
 ) => {
   try {
-    const response = await apiClient.put(`/games/${gameId}`, game, {
+    const response = await apiClient.put<Game>(`/games/${gameId}`, game, {
       headers: { "x-auth-token": token },
     });
     return response.data;
-  } catch (error) {
-    throw new Error("Updating game failed");
+  } catch (error: any) {
+    throw new Error(error.response.data);
   }
 };

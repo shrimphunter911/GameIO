@@ -8,7 +8,7 @@ export const createUser = async (formData: {
   try {
     const response = await apiClient.post("/users", formData);
     return response.data;
-  } catch (error) {
-    throw new Error("Signup failed. Please try again.");
+  } catch (error: any) {
+    throw new Error(error.response.data);
   }
 };
