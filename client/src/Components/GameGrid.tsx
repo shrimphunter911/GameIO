@@ -30,7 +30,7 @@ const GameGrid = () => {
   useEffect(() => {
     const handleSearch = async () => {
       try {
-        setLoading(true); // Start loading
+        setLoading(true);
         setPage(1);
         const result = await searchGames(debouncedInput, 1);
         gamesDispatch({ type: "setGames", payload: result });
@@ -104,7 +104,7 @@ const GameGrid = () => {
       } catch (err: any) {
         if (err.message !== "Request canceled") setError(err.message);
       } finally {
-        setLoading(false); // End loading
+        setLoading(false);
       }
     };
 
@@ -125,39 +125,44 @@ const GameGrid = () => {
 
   return (
     <>
-      <Box position="relative" width="100%">
-        <Input
-          placeholder="Search"
-          variant="outline"
-          type="text"
-          id="search"
-          value={input.search}
-          onChange={handleChange}
-          pr="40px"
-        />
-        <AdvancedSearchDrawer
-          input={input}
-          onChange={handleChange}
-          onSortChange={handleSortChange}
-          genres={genres}
-        />
+      <Box width="100%" padding="20px">
+        <Box position="relative" maxW="1200px" mx="auto" mb="4">
+          {" "}
+          <Input
+            placeholder="Search"
+            variant="outline"
+            type="text"
+            id="search"
+            value={input.search}
+            onChange={handleChange}
+            pr="40px"
+            width="100%"
+          />
+          <AdvancedSearchDrawer
+            input={input}
+            onChange={handleChange}
+            onSortChange={handleSortChange}
+            genres={genres}
+          />
+        </Box>
+        <SimpleGrid
+          columns={{ sm: 2, md: 2, lg: 3, xl: 3 }}
+          spacing="50px"
+          maxW="1200px"
+          mx="auto"
+        >
+          {games.map((game) => (
+            <Link key={game.id} to={`/games/${game.id}`}>
+              <GameCard key={game.id} game={game} />
+            </Link>
+          ))}
+        </SimpleGrid>
+        {loading && (
+          <Center mt={4} mb={4}>
+            <Spinner size="lg" color="blue.500" />
+          </Center>
+        )}
       </Box>
-      <SimpleGrid
-        columns={{ sm: 2, md: 2, lg: 3, xl: 3 }}
-        padding="20px"
-        spacing={20}
-      >
-        {games.map((game) => (
-          <Link key={game.id} to={`/games/${game.id}`}>
-            <GameCard key={game.id} game={game}></GameCard>
-          </Link>
-        ))}
-      </SimpleGrid>
-      {loading && (
-        <Center mt={4} mb={4}>
-          <Spinner size="lg" color="blue.500" />
-        </Center>
-      )}
     </>
   );
 };

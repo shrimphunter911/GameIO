@@ -19,6 +19,6 @@ export const searchGames = async (
     );
     return response.data;
   } catch (error: any) {
-    throw new Error(error.message);
+    throw new Error(error.response.data);
   }
 };

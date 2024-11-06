@@ -69,12 +69,19 @@ export default function AdvancedSearchDrawer({
                 value={input.publisher}
                 onChange={onChange}
               />
-              <Input
-                placeholder="Release Date"
+              <Text>Release Year:</Text>
+              <Select
+                placeholder="Select year"
                 id="releaseDate"
                 value={input.releaseDate}
                 onChange={onChange}
-              />
+              >
+                {Array.from({ length: 11 }, (_, i) => 2020 + i).map((year) => (
+                  <option key={year} value={year.toString()}>
+                    {year}
+                  </option>
+                ))}
+              </Select>
               <Text>Sort by:</Text>
               <HStack>
                 <Button

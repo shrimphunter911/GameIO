@@ -6,7 +6,7 @@ export const deleteGame = async (token: string, gameId?: number) => {
       headers: { "x-auth-token": token },
     });
     return response.data;
-  } catch (error) {
-    throw new Error("Deletion failed");
+  } catch (error: any) {
+    throw new Error(error.response.data);
   }
 };

@@ -30,8 +30,7 @@ const customSelectStyles: StylesConfig<GenreOption, true> = {
   option: (provided, state) => ({
     ...provided,
     color: "black",
-    backgroundColor: state.isFocused ? "#f0f0f0" : "white", // Light gray background on hover
-    // You can add additional styling here if needed
+    backgroundColor: state.isFocused ? "#f0f0f0" : "white",
   }),
 };
 
@@ -86,6 +85,10 @@ export default function PostGame() {
       try {
         const response = await createGame(game, userState.token);
         handleNewGame(response);
+        gamesDispatch({
+          type: "setGames",
+          payload: [...gamesState.games, response],
+        });
         setGame({
           title: "",
           description: "",
@@ -95,11 +98,10 @@ export default function PostGame() {
           genreIds: [],
         });
         setIsUploaded(false);
-      } catch (error: any) {
-        showToast("error", error.message, "Error");
-      } finally {
         showToast("success", "Game posted successfully!", "Success");
         navigate("/");
+      } catch (error: any) {
+        showToast("error", error.message, "Error");
       }
     } else {
       showToast("error", "Please fill all the fields properly.", "Error");

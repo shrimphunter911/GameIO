@@ -19,7 +19,7 @@ export const getIndividualReview = async (
       }
     );
     return response.data;
-  } catch (error) {
-    throw new Error("Login failed. Please try again.");
+  } catch (error: any) {
+    throw new Error(error.response.data);
   }
 };

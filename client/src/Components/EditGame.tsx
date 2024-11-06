@@ -104,14 +104,21 @@ export default function EditGame() {
       try {
         const response = await updateGame(game, userState.token, gameId);
         handleUpdatedGame(response);
+        gamesDispatch({
+          type: "setGames",
+          payload: [
+            ...gamesState.games.map((game) =>
+              game.id === response.id ? response : game
+            ),
+          ],
+        });
         setIsError(false);
+        showToast("success", "Updated successfully", "Success");
+        navigate("/");
       } catch (error: any) {
         setError(error.message);
         setIsError(true);
         showToast("error", error, "Error");
-      } finally {
-        showToast("success", "Updated successfully", "Success");
-        navigate("/");
       }
     } else {
       setError("Please fill all the fields properly.");

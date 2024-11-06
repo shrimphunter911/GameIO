@@ -21,7 +21,7 @@ export const updateReview = async (
       }
     );
     return response.data;
-  } catch (error) {
-    throw new Error("Updating review failed");
+  } catch (error: any) {
+    throw new Error(error.response.data);
   }
 };

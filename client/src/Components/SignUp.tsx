@@ -47,12 +47,11 @@ const SignUp = () => {
         await cookies.set("x-auth-token", response, { expires: date });
         userDispatch({ type: "login", payload: response });
         setFormData({ name: "", email: "", password: "" });
+        showToast("success", "Sign Up successful", "Sign UP");
       } catch (err: any) {
         setError(err.message);
         setIsError(true);
         showToast("error", error, "Sign Up");
-      } finally {
-        showToast("success", "Sign Up successful", "Sign UP");
       }
     } else {
       setError("Please fill in all fields correctly.");

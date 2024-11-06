@@ -1,3 +1,4 @@
+import { Game } from "../Interfaces/game";
 import apiClient from "./api-client";
 
 export const createGame = async (
@@ -12,11 +13,11 @@ export const createGame = async (
   token: string
 ) => {
   try {
-    const response = await apiClient.post("/games", game, {
+    const response = await apiClient.post<Game>("/games", game, {
       headers: { "x-auth-token": token },
     });
     return response.data;
-  } catch (error) {
-    throw new Error("Game creation failed");
+  } catch (error: any) {
+    throw new Error(error.response.data);
   }
 };

@@ -15,11 +15,10 @@ const NavBar = () => {
     try {
       await cookies.remove("x-auth-token");
       userDispatch({ type: "logout", payload: "" });
-    } catch (error: any) {
-      showToast("error", error.message, "Logout");
-    } finally {
       showToast("success", "Successfully Logged Out", "Log Out");
       navigate("/");
+    } catch (error: any) {
+      showToast("error", error.message, "Logout");
     }
   };
 

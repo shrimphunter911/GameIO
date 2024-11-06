@@ -21,7 +21,7 @@ export const postReview = async (
       }
     );
     return response.data;
-  } catch (error) {
-    throw new Error("Posting review failed");
+  } catch (error: any) {
+    throw new Error(error.response.data);
   }
 };
