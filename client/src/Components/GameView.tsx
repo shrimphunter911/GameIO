@@ -24,6 +24,7 @@ import {
   Button,
   Textarea,
   Badge,
+  Spinner,
 } from "@chakra-ui/react";
 import { Game } from "../Interfaces/game";
 import fetchGame from "../Services/fetchGame";
@@ -43,6 +44,7 @@ const GameView = () => {
   const [game, setGame] = useState<Game>();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [err, setError] = useState("");
+  const [loading, setLoading] = useState(true);
   const [review, setReview] = useState<Review>({
     gameId: Number(params.gameId),
     review: "",
@@ -55,12 +57,15 @@ const GameView = () => {
   const getDetails = async () => {
     const controller = new AbortController();
     const getGame = async () => {
+      setLoading(true);
       try {
         const data = await fetchGame(controller.signal, params);
         setGame(data);
         setReviews(data.reviews || []);
       } catch (err: any) {
         if (err.message !== "Request canceled") setError(err.message);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -149,13 +154,16 @@ const GameView = () => {
 
   return (
     <>
-      {err && (
+      {loading ? (
+        <Flex justify="center" align="center" minH="100vh">
+          <Spinner size="xl" />
+        </Flex>
+      ) : err ? (
         <Alert borderRadius={10} status="error">
           <AlertIcon />
           <AlertTitle>{err}</AlertTitle>
         </Alert>
-      )}
-      {game ? (
+      ) : game ? (
         <Container maxW={"7xl"}>
           <SimpleGrid
             columns={{ base: 1, lg: 2 }}
