@@ -106,7 +106,7 @@ const GameView = () => {
       showToast("success", "Review posted", "Review");
     } catch (error: any) {
       setError(error.message);
-      showToast("error", error, "Review");
+      showToast("error", error.message, "Review");
     }
   };
 
@@ -118,7 +118,7 @@ const GameView = () => {
       showToast("success", "Review updated", "Review");
     } catch (error: any) {
       setError(error.message);
-      showToast("error", error, "Review");
+      showToast("error", error.message, "Review");
     }
   };
 
@@ -150,6 +150,10 @@ const GameView = () => {
   const redirectNotLoggedIn = () => {
     showToast("error", "Please log in first", "Not Logged In");
     navigate("/login");
+  };
+
+  const numberOfReviews = () => {
+    return game?.reviews?.length;
   };
 
   return (
@@ -220,6 +224,11 @@ const GameView = () => {
                 >
                   {game?.publisher}
                 </Text>
+                {numberOfReviews()! > 1 ? (
+                  <Text color="red.500" fontWeight={500} fontSize="lg">
+                    {`${numberOfReviews()} people reviewed`}
+                  </Text>
+                ) : null}
               </Box>
 
               <Stack spacing={{ base: 4, sm: 6 }} direction={"column"}>

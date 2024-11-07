@@ -51,7 +51,7 @@ const SignUp = () => {
       } catch (err: any) {
         setError(err.message);
         setIsError(true);
-        showToast("error", error, "Sign Up");
+        showToast("error", err.message, "Sign Up");
       }
     } else {
       setError("Please fill in all fields correctly.");

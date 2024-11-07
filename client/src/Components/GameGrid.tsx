@@ -1,4 +1,11 @@
-import { Box, Input, SimpleGrid, Spinner, Center } from "@chakra-ui/react";
+import {
+  Box,
+  Input,
+  SimpleGrid,
+  Spinner,
+  Center,
+  Heading,
+} from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 import GameCard from "./GameCard";
 import { useEffect, useState } from "react";

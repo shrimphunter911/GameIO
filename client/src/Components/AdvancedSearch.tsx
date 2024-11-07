@@ -82,7 +82,7 @@ export default function AdvancedSearchDrawer({
                   </option>
                 ))}
               </Select>
-              <Text>Sort by:</Text>
+              <Text>Sort by Rating:</Text>
               <HStack>
                 <Button
                   onClick={() => onSortChange("asc")}

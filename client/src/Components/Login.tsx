@@ -46,9 +46,9 @@ const Login = () => {
         setFormData({ email: "", password: "" });
         showToast("success", "Login successful", "Login");
       } catch (err: any) {
-        setError("Login failed. Please try again.");
+        setError(err.message);
         setIsError(true);
-        showToast("error", error, "Login");
+        showToast("error", err.message, "Login");
       }
     } else {
       setError("Please fill in all fields correctly.");
