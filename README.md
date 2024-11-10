@@ -4,6 +4,8 @@
 - Users can edit and remove games they created and search using keywords, release date, genres and sort games by average rating.
 - Users can rate and review games and an average rating is shown all across the app.
 - The game details page shows the details along with the list of ratings and reviews by individual users.
+- Authentication is handled with JWT Token.
+- Users can switch between light and dark mode. (Chakra UI components used)
 
 ## Elasticsearch & Infinite Scroll
 
@@ -11,7 +13,7 @@
 - Elasticsearch significantly reduces the time of search and other query operations.
 - Infinite Scroll is implemented to give the user a seamless experience.
 - Using debouncer has resulted limiting the request to the server.
-- More features coming soon
+- More features are coming soon
 
 ![](assets/Screenshot%202024-11-10%20130321.png)
 ![](assets/Screenshot%202024-11-10%20130359.png)
