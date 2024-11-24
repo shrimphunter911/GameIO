@@ -10,13 +10,15 @@ import { GamesContext } from "./Contexts/gamesContext";
 import { genresReducer } from "./Reducers/genresReducer";
 import fetchGenres from "./Services/fetchGenres";
 import { GenresContext } from "./Contexts/genresContext";
+import { Provider } from "react-redux";
+import { store } from "./State/store";
 
 const App = () => {
   const cookies = new Cookies();
   const [userState, userDispatch] = useReducer(userReducer, {
     token: "",
   });
-  const [gamesState, gamesDispatch] = useReducer(gamesReducer, { games: [] });
+  // const [gamesState, gamesDispatch] = useReducer(gamesReducer, { games: [] });
   const [genresState, genresDispatch] = useReducer(genresReducer, {
     genres: [],
   });
@@ -42,7 +44,7 @@ const App = () => {
   return (
     <UserContext.Provider value={{ userState, userDispatch }}>
       <GenresContext.Provider value={{ genresState, genresDispatch }}>
-        <GamesContext.Provider value={{ gamesState, gamesDispatch }}>
+        <Provider store={store}>
           <Grid
             templateAreas={{
               base: `"nav" "main"`,
@@ -56,7 +58,7 @@ const App = () => {
               <Outlet />
             </GridItem>
           </Grid>
-        </GamesContext.Provider>
+        </Provider>
       </GenresContext.Provider>
     </UserContext.Provider>
   );

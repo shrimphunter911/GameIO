@@ -14,15 +14,20 @@ import AdvancedSearchDrawer from "./AdvancedSearch";
 import { useGenresContext } from "../Contexts/genresContext";
 import { searchGames } from "../Services/searchGames";
 import { showToast } from "../Services/showToast";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../State/store";
+import { setGames } from "../State/gamesSlice";
 
 const GameGrid = () => {
   const [error, setError] = useState("");
   const [page, setPage] = useState<number>(1);
   const [isBottom, setIsBottom] = useState<boolean>(false);
-  const { gamesState, gamesDispatch } = useGamesContext();
+  // const { gamesState, gamesDispatch } = useGamesContext();
+  const games = useSelector((state: RootState) => state.games);
+  const dispatch = useDispatch();
   const { genresState } = useGenresContext();
   const genres = genresState.genres;
-  const games = gamesState.games;
+  // const games = gamesState.games;
   const [loading, setLoading] = useState(false);
   let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
   const [input, setInput] = useState({
@@ -40,7 +45,7 @@ const GameGrid = () => {
         setLoading(true);
         setPage(1);
         const result = await searchGames(debouncedInput, 1);
-        gamesDispatch({ type: "setGames", payload: result });
+        dispatch(setGames(result));
       } catch (error: any) {
         setError(error.message);
         showToast("error", error, "Error");
@@ -98,16 +103,12 @@ const GameGrid = () => {
         setLoading(true);
         const data = await searchGames(debouncedInput, page);
         const uniqueGames = [
-          ...gamesState.games,
+          ...games,
           ...data.filter(
-            (newGame) =>
-              !gamesState.games.some((game) => game.id === newGame.id)
+            (newGame) => !games.some((game) => game.id === newGame.id)
           ),
         ];
-        gamesDispatch({
-          type: "setGames",
-          payload: uniqueGames,
-        });
+        dispatch(setGames(uniqueGames));
       } catch (err: any) {
         if (err.message !== "Request canceled") setError(err.message);
       } finally {

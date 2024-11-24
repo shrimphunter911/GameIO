@@ -19,11 +19,14 @@ import UploadWidget from "./UploadWidget";
 import { updateGame } from "../Services/updateGame";
 import { useGamesContext } from "../Contexts/gamesContext";
 import { showToast } from "../Services/showToast";
+import { useDispatch } from "react-redux";
+import { editGame } from "../State/gamesSlice";
 
 export default function EditGame() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { userState } = useUserContext();
-  const { gamesState, gamesDispatch } = useGamesContext();
+  // const { gamesState, gamesDispatch } = useGamesContext();
   const params = useParams();
   const gameId = params.gameId;
   const [game, setGame] = useState<Game>({
@@ -87,15 +90,7 @@ export default function EditGame() {
     game.releaseDate.trim() !== "";
 
   const handleUpdatedGame = (item: Game) => {
-    gamesDispatch({
-      type: "setGames",
-      payload: gamesState.games.map((game) => {
-        if (game.id === item.id) {
-          return item;
-        }
-        return game;
-      }),
-    });
+    dispatch(editGame(item));
   };
 
   const handleUpdateGame = async (e: FormEvent) => {

@@ -18,6 +18,9 @@ import { deleteGame } from "../Services/deleteGame";
 import { useUserContext } from "../Contexts/userContext";
 import { useGamesContext } from "../Contexts/gamesContext";
 import { showToast } from "../Services/showToast";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../State/store";
+import { removeGame } from "../State/gamesSlice";
 
 interface Props {
   game: Game;
@@ -26,19 +29,17 @@ interface Props {
 const MyGameCard = ({ game }: Props) => {
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { userState } = useUserContext();
-  const { gamesState, gamesDispatch } = useGamesContext();
+  // const { gamesState, gamesDispatch } = useGamesContext();
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const releaseYear = new Date(game.releaseDate).getFullYear();
 
   const handleDelete = async () => {
     try {
       const response = await deleteGame(userState.token, game.id);
-      gamesDispatch({
-        type: "setGames",
-        payload: gamesState.games.filter((item) => item.id !== game.id),
-      });
+      dispatch(removeGame(game.id!));
       setDeleteDialogOpen(false);
       showToast("success", "Successfully removed", "Delete Game");
       navigate("/");
