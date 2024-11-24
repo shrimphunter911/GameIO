@@ -52,19 +52,19 @@ export const createGame = async (req: Request, res: Response) => {
     await game_genresModel.bulkCreate(gameGenres);
 
     // Indexing games in elastic
-    await client.index({
-      index: "games",
-      id: `${game.id}`,
-      body: {
-        title: game.title,
-        releaseDate: game.releaseDate,
-        publisher: game.publisher,
-        imageUrl: game.imageUrl,
-        userId: game.userId,
-        avg_rating: 0.0,
-        genreIds: req.body.genreIds,
-      },
-    });
+    // await client.index({
+    //   index: "games",
+    //   id: `${game.id}`,
+    //   body: {
+    //     title: game.title,
+    //     releaseDate: game.releaseDate,
+    //     publisher: game.publisher,
+    //     imageUrl: game.imageUrl,
+    //     userId: game.userId,
+    //     avg_rating: 0.0,
+    //     genreIds: req.body.genreIds,
+    //   },
+    // });
 
     res.status(201).json({
       ..._.omit(game.dataValues, ["userId"]),
@@ -96,54 +96,123 @@ export const getGames = async (req: Request, res: Response) => {
         ? req.query.sortByRating
         : null;
 
-    const elasticQuery: any = {
-      index: "games",
-      from: offset,
-      size: limit,
-      body: {
-        query: {
-          bool: {
-            must: [
-              search
-                ? { match_phrase_prefix: { title: search } }
-                : { match_all: {} },
-              publisher
-                ? { match: { publisher: publisher } }
-                : { match_all: {} },
-            ],
-            filter: [
-              ...(genreId ? [{ term: { genreIds: genreId } }] : []),
-              ...(releaseYear
-                ? [
-                    {
-                      range: {
-                        releaseDate: {
-                          gte: `${releaseYear}-01-01`,
-                          lte: `${releaseYear}-12-31`,
-                        },
-                      },
-                    },
-                  ]
-                : []),
-              ...(userId ? [{ term: { userId: userId } }] : []),
-            ],
-          },
-        },
-        ...(sortByRating
-          ? { sort: [{ avg_rating: { order: sortByRating } }] }
-          : {}),
+    const releaseDateRange = releaseYear
+      ? {
+          [Op.between]: [
+            new Date(releaseYear, 0, 1).toISOString(),
+            new Date(releaseYear, 11, 31, 23, 59, 59).toISOString(),
+          ],
+        }
+      : undefined;
+
+    const whereConditions: any = {
+      title: {
+        [Op.iLike]: `%${search}%`,
       },
+      ...(releaseDateRange && { releaseDate: releaseDateRange }),
+      ...(publisher && { publisher: { [Op.iLike]: `%${publisher}%` } }),
     };
 
-    const { hits } = await client.search(elasticQuery);
+    if (userId) {
+      whereConditions.userId = userId;
+    }
 
-    const games = hits.hits.map((hit) => {
-      const { userId, ...gameData } = hit._source as GameForES;
-      return {
-        ...gameData,
-        id: parseInt(hit._id!),
-      };
+    const games = await gameModel.findAll({
+      where: whereConditions,
+      attributes: [
+        "id",
+        "title",
+        "description",
+        "releaseDate",
+        "publisher",
+        "imageUrl",
+        [literal("ROUND(COALESCE(AVG(ratings.rated), 0), 2)"), "avg_rating"],
+        [
+          literal(`(
+              SELECT ARRAY_AGG("genreId")
+              FROM "game_genres" AS "game_genres"
+              WHERE "game_genres"."gameId" = "game"."id"
+            )`),
+          "genreIds",
+        ],
+      ],
+      include: [
+        {
+          model: ratingModel,
+          attributes: [],
+        },
+        {
+          model: game_genresModel,
+          required: true,
+          attributes: [],
+          include: [
+            {
+              model: genreModel,
+              where: genreId ? { id: genreId } : undefined,
+              attributes: [],
+            },
+          ],
+        },
+      ],
+      group: ["game.id"],
+      ...(sortByRating && {
+        order: [
+          [literal("ROUND(COALESCE(AVG(ratings.rated), 0), 2)"), sortByRating],
+        ],
+      }),
+      limit,
+      subQuery: false,
+      offset,
     });
+    // Elastic search query
+    // const elasticQuery: any = {
+    //   index: "games",
+    //   from: offset,
+    //   size: limit,
+    //   body: {
+    //     query: {
+    //       bool: {
+    //         must: [
+    //           search
+    //             ? { match_phrase_prefix: { title: search } }
+    //             : { match_all: {} },
+    //           publisher
+    //             ? { match: { publisher: publisher } }
+    //             : { match_all: {} },
+    //         ],
+    //         filter: [
+    //           ...(genreId ? [{ term: { genreIds: genreId } }] : []),
+    //           ...(releaseYear
+    //             ? [
+    //                 {
+    //                   range: {
+    //                     releaseDate: {
+    //                       gte: `${releaseYear}-01-01`,
+    //                       lte: `${releaseYear}-12-31`,
+    //                     },
+    //                   },
+    //                 },
+    //               ]
+    //             : []),
+    //           ...(userId ? [{ term: { userId: userId } }] : []),
+    //         ],
+    //       },
+    //     },
+    //     ...(sortByRating
+    //       ? { sort: [{ avg_rating: { order: sortByRating } }] }
+    //       : {}),
+    //   },
+    // };
+
+    // const { hits } = await client.search(elasticQuery);
+
+    // const games = hits.hits.map((hit) => {
+    //   const { userId, ...gameData } = hit._source as GameForES;
+    //   return {
+    //     ...gameData,
+    //     id: parseInt(hit._id!),
+    //   };
+    // });
 
     res.status(200).json(games);
   } catch (error) {
@@ -183,19 +252,20 @@ export const updateGame = async (req: Request, res: Response) => {
       imageUrl: req.body.imageUrl || game.imageUrl,
     });
 
-    await client.update({
-      index: "games",
-      id: gameId,
-      doc: {
-        title: req.body.title || game.title,
-        description: req.body.description || game.description,
-        releaseDate: req.body.releaseDate
-          ? new Date(req.body.releaseDate).toISOString()
-          : game.releaseDate,
-        publisher: req.body.publisher || game.publisher,
-        imageUrl: req.body.imageUrl || game.imageUrl,
-      },
-    });
+    // Updating in elastic
+    // await client.update({
+    //   index: "games",
+    //   id: gameId,
+    //   doc: {
+    //     title: req.body.title || game.title,
+    //     description: req.body.description || game.description,
+    //     releaseDate: req.body.releaseDate
+    //       ? new Date(req.body.releaseDate).toISOString()
+    //       : game.releaseDate,
+    //     publisher: req.body.publisher || game.publisher,
+    //     imageUrl: req.body.imageUrl || game.imageUrl,
+    //   },
+    // });
 
     res.status(201).json({
       ..._.omit(updatedGame.dataValues, ["userId"]),
@@ -257,17 +327,18 @@ export const getGame = async (req: Request, res: Response) => {
 
     const genreIds = genres.map((genre) => genre.genreId);
 
-    const avg_rating = game.dataValues.avg_rating;
+    // Updating avg rating in elastic
+    // const avg_rating = game.dataValues.avg_rating;
 
-    if (avg_rating !== null) {
-      await client.update({
-        index: "games",
-        id: gameId,
-        doc: {
-          avg_rating: parseFloat(avg_rating),
-        },
-      });
-    }
+    // if (avg_rating !== null) {
+    //   await client.update({
+    //     index: "games",
+    //     id: gameId,
+    //     doc: {
+    //       avg_rating: parseFloat(avg_rating),
+    //     },
+    //   });
+    // }
 
     res.status(200).json({
       ..._.omit(game.dataValues, ["userId"]),
@@ -306,10 +377,12 @@ export const deleteGame = async (req: Request, res: Response) => {
 
     game.destroy();
 
-    await client.delete({
-      index: "games",
-      id: gameId,
-    });
+    // removing from elastic
+    // await client.delete({
+    //   index: "games",
+    //   id: gameId,
+    // });
+
     res.status(200).send("Successfully deleted");
   } catch (error) {
     res.status(400).send(error);

@@ -8,17 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -27,7 +16,6 @@ exports.deleteGame = exports.getGame = exports.updateGame = exports.getGames = e
 const Models_1 = __importDefault(require("../Models"));
 const sequelize_1 = require("sequelize");
 const lodash_1 = __importDefault(require("lodash"));
-const elasticSearch_1 = __importDefault(require("../config/elasticSearch"));
 const gameModel = Models_1.default.game;
 const game_genresModel = Models_1.default.game_genres;
 const genreModel = Models_1.default.genre;
@@ -58,19 +46,19 @@ const createGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         }));
         yield game_genresModel.bulkCreate(gameGenres);
         // Indexing games in elastic
-        yield elasticSearch_1.default.index({
-            index: "games",
-            id: `${game.id}`,
-            body: {
-                title: game.title,
-                releaseDate: game.releaseDate,
-                publisher: game.publisher,
-                imageUrl: game.imageUrl,
-                userId: game.userId,
-                avg_rating: 0.0,
-                genreIds: req.body.genreIds,
-            },
-        });
+        // await client.index({
+        //   index: "games",
+        //   id: `${game.id}`,
+        //   body: {
+        //     title: game.title,
+        //     releaseDate: game.releaseDate,
+        //     publisher: game.publisher,
+        //     imageUrl: game.imageUrl,
+        //     userId: game.userId,
+        //     avg_rating: 0.0,
+        //     genreIds: req.body.genreIds,
+        //   },
+        // });
         res.status(201).json(Object.assign(Object.assign({}, lodash_1.default.omit(game.dataValues, ["userId"])), { genreIds: givenGenres }));
     }
     catch (error) {
@@ -97,46 +85,105 @@ const getGames = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const sortByRating = req.query.sortByRating === "asc" || req.query.sortByRating === "desc"
             ? req.query.sortByRating
             : null;
-        const elasticQuery = {
-            index: "games",
-            from: offset,
-            size: limit,
-            body: Object.assign({ query: {
-                    bool: {
-                        must: [
-                            search
-                                ? { match_phrase_prefix: { title: search } }
-                                : { match_all: {} },
-                            publisher
-                                ? { match: { publisher: publisher } }
-                                : { match_all: {} },
-                        ],
-                        filter: [
-                            ...(genreId ? [{ term: { genreIds: genreId } }] : []),
-                            ...(releaseYear
-                                ? [
-                                    {
-                                        range: {
-                                            releaseDate: {
-                                                gte: `${releaseYear}-01-01`,
-                                                lte: `${releaseYear}-12-31`,
-                                            },
-                                        },
-                                    },
-                                ]
-                                : []),
-                            ...(userId ? [{ term: { userId: userId } }] : []),
-                        ],
-                    },
-                } }, (sortByRating
-                ? { sort: [{ avg_rating: { order: sortByRating } }] }
-                : {})),
-        };
-        const { hits } = yield elasticSearch_1.default.search(elasticQuery);
-        const games = hits.hits.map((hit) => {
-            const _a = hit._source, { userId } = _a, gameData = __rest(_a, ["userId"]);
-            return Object.assign(Object.assign({}, gameData), { id: parseInt(hit._id) });
-        });
+        const releaseDateRange = releaseYear
+            ? {
+                [sequelize_1.Op.between]: [
+                    new Date(releaseYear, 0, 1).toISOString(),
+                    new Date(releaseYear, 11, 31, 23, 59, 59).toISOString(),
+                ],
+            }
+            : undefined;
+        const whereConditions = Object.assign(Object.assign({ title: {
+                [sequelize_1.Op.iLike]: `%${search}%`,
+            } }, (releaseDateRange && { releaseDate: releaseDateRange })), (publisher && { publisher: { [sequelize_1.Op.iLike]: `%${publisher}%` } }));
+        if (userId) {
+            whereConditions.userId = userId;
+        }
+        const games = yield gameModel.findAll(Object.assign(Object.assign({ where: whereConditions, attributes: [
+                "id",
+                "title",
+                "description",
+                "releaseDate",
+                "publisher",
+                "imageUrl",
+                [(0, sequelize_1.literal)("ROUND(COALESCE(AVG(ratings.rated), 0), 2)"), "avg_rating"],
+                [
+                    (0, sequelize_1.literal)(`(
+              SELECT ARRAY_AGG("genreId")
+              FROM "game_genres" AS "game_genres"
+              WHERE "game_genres"."gameId" = "game"."id"
+            )`),
+                    "genreIds",
+                ],
+            ], include: [
+                {
+                    model: ratingModel,
+                    attributes: [],
+                },
+                {
+                    model: game_genresModel,
+                    required: true,
+                    attributes: [],
+                    include: [
+                        {
+                            model: genreModel,
+                            where: genreId ? { id: genreId } : undefined,
+                            attributes: [],
+                        },
+                    ],
+                },
+            ], group: ["game.id"] }, (sortByRating && {
+            order: [
+                [(0, sequelize_1.literal)("ROUND(COALESCE(AVG(ratings.rated), 0), 2)"), sortByRating],
+            ],
+        })), { limit, subQuery: false, offset }));
+        // Elastic search query
+        // const elasticQuery: any = {
+        //   index: "games",
+        //   from: offset,
+        //   size: limit,
+        //   body: {
+        //     query: {
+        //       bool: {
+        //         must: [
+        //           search
+        //             ? { match_phrase_prefix: { title: search } }
+        //             : { match_all: {} },
+        //           publisher
+        //             ? { match: { publisher: publisher } }
+        //             : { match_all: {} },
+        //         ],
+        //         filter: [
+        //           ...(genreId ? [{ term: { genreIds: genreId } }] : []),
+        //           ...(releaseYear
+        //             ? [
+        //                 {
+        //                   range: {
+        //                     releaseDate: {
+        //                       gte: `${releaseYear}-01-01`,
+        //                       lte: `${releaseYear}-12-31`,
+        //                     },
+        //                   },
+        //                 },
+        //               ]
+        //             : []),
+        //           ...(userId ? [{ term: { userId: userId } }] : []),
+        //         ],
+        //       },
+        //     },
+        //     ...(sortByRating
+        //       ? { sort: [{ avg_rating: { order: sortByRating } }] }
+        //       : {}),
+        //   },
+        // };
+        // const { hits } = await client.search(elasticQuery);
+        // const games = hits.hits.map((hit) => {
+        //   const { userId, ...gameData } = hit._source as GameForES;
+        //   return {
+        //     ...gameData,
+        //     id: parseInt(hit._id!),
+        //   };
+        // });
         res.status(200).json(games);
     }
     catch (error) {
@@ -171,19 +218,20 @@ const updateGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             publisher: req.body.publisher || game.publisher,
             imageUrl: req.body.imageUrl || game.imageUrl,
         });
-        yield elasticSearch_1.default.update({
-            index: "games",
-            id: gameId,
-            doc: {
-                title: req.body.title || game.title,
-                description: req.body.description || game.description,
-                releaseDate: req.body.releaseDate
-                    ? new Date(req.body.releaseDate).toISOString()
-                    : game.releaseDate,
-                publisher: req.body.publisher || game.publisher,
-                imageUrl: req.body.imageUrl || game.imageUrl,
-            },
-        });
+        // Updating in elastic
+        // await client.update({
+        //   index: "games",
+        //   id: gameId,
+        //   doc: {
+        //     title: req.body.title || game.title,
+        //     description: req.body.description || game.description,
+        //     releaseDate: req.body.releaseDate
+        //       ? new Date(req.body.releaseDate).toISOString()
+        //       : game.releaseDate,
+        //     publisher: req.body.publisher || game.publisher,
+        //     imageUrl: req.body.imageUrl || game.imageUrl,
+        //   },
+        // });
         res.status(201).json(Object.assign(Object.assign({}, lodash_1.default.omit(updatedGame.dataValues, ["userId"])), { genreIds: req.body.genreIds }));
     }
     catch (error) {
@@ -238,16 +286,17 @@ const getGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             },
         });
         const genreIds = genres.map((genre) => genre.genreId);
-        const avg_rating = game.dataValues.avg_rating;
-        if (avg_rating !== null) {
-            yield elasticSearch_1.default.update({
-                index: "games",
-                id: gameId,
-                doc: {
-                    avg_rating: parseFloat(avg_rating),
-                },
-            });
-        }
+        // Updating avg rating in elastic
+        // const avg_rating = game.dataValues.avg_rating;
+        // if (avg_rating !== null) {
+        //   await client.update({
+        //     index: "games",
+        //     id: gameId,
+        //     doc: {
+        //       avg_rating: parseFloat(avg_rating),
+        //     },
+        //   });
+        // }
         res.status(200).json(Object.assign(Object.assign({}, lodash_1.default.omit(game.dataValues, ["userId"])), { genreIds }));
     }
     catch (error) {
@@ -276,10 +325,11 @@ const deleteGame = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             },
         });
         game.destroy();
-        yield elasticSearch_1.default.delete({
-            index: "games",
-            id: gameId,
-        });
+        // removing from elastic
+        // await client.delete({
+        //   index: "games",
+        //   id: gameId,
+        // });
         res.status(200).send("Successfully deleted");
     }
     catch (error) {

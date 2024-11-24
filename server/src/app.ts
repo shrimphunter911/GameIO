@@ -27,11 +27,12 @@ app.use("/api/elastic", getAllGamesFromElastic);
 app.listen(port, hostname, async () => {
   if ("sequelize" in db) {
     await db.sequelize.sync();
-    try {
-      await createGameIndex();
-    } catch (err: any) {
-      console.log(err);
-    }
+    // Elastic indexing
+    // try {
+    //   await createGameIndex();
+    // } catch (err: any) {
+    //   console.log(err);
+    // }
     console.log(`Server running at http://${hostname}:${port}/`);
   } else {
     console.error("Sequelize instance not found in db object.");
