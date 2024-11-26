@@ -14,9 +14,12 @@ import { useUserContext } from "../Contexts/userContext";
 import { Link } from "react-router-dom";
 import MyGameCard from "./MyGameCard";
 import { searchMyGames } from "../Services/searchMyGames";
+import { useSelector } from "react-redux";
+import { RootState } from "../State/store";
 
 const MyGames = () => {
-  const { userState } = useUserContext();
+  // const { userState } = useUserContext();
+  const user = useSelector((state: RootState) => state.user.token);
   const [myGames, setMyGames] = useState<Game[]>([]);
   const { genresState } = useGenresContext();
   const [error, setError] = useState("");
@@ -24,7 +27,6 @@ const MyGames = () => {
   const [isBottom, setIsBottom] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
   const genres = genresState.genres;
-  const token = userState.token;
   let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
 
   const [input, setInput] = useState({
@@ -41,7 +43,7 @@ const MyGames = () => {
       try {
         setLoading(true);
         setPage(1);
-        const result = await searchMyGames(debouncedInput, 1, token);
+        const result = await searchMyGames(debouncedInput, 1, user);
         setMyGames(result);
       } catch (error: any) {
         setError(error.message);
@@ -97,7 +99,7 @@ const MyGames = () => {
     const getGames = async () => {
       try {
         setLoading(true); // Start loading
-        const data = await searchMyGames(debouncedInput, page, token);
+        const data = await searchMyGames(debouncedInput, page, user);
         const uniqueGames = [
           ...myGames,
           ...data.filter(

@@ -37,6 +37,8 @@ import { postReview } from "../Services/postReview";
 import { updateReview } from "../Services/updateReview";
 import Rating from "./Rating";
 import { showToast } from "../Services/showToast";
+import { useSelector } from "react-redux";
+import { RootState } from "../State/store";
 
 const GameView = () => {
   const { genresState } = useGenresContext();
@@ -51,7 +53,8 @@ const GameView = () => {
     rated: 0,
   });
   const [isEditing, setIsEditing] = useState(false);
-  const { userState } = useUserContext();
+  // const { userState } = useUserContext();
+  const user = useSelector((state: RootState) => state.user.token);
   const navigate = useNavigate();
 
   const getDetails = async () => {
@@ -75,9 +78,9 @@ const GameView = () => {
 
   useEffect(() => {
     const fetchReview = async () => {
-      if (userState.token) {
+      if (user) {
         try {
-          const response = await getIndividualReview(userState.token, params);
+          const response = await getIndividualReview(user, params);
           if (response && response.review) {
             setReview(response);
             setIsEditing(true);
@@ -91,7 +94,7 @@ const GameView = () => {
     };
 
     fetchReview();
-  }, [userState.token, params]);
+  }, [user, params]);
 
   useEffect(() => {
     getDetails();
@@ -99,7 +102,7 @@ const GameView = () => {
 
   const handlePostReview = async () => {
     try {
-      const result = await postReview(userState.token, params, review);
+      const result = await postReview(user, params, review);
       setReview(result);
       setIsEditing(true);
       getDetails();
@@ -112,7 +115,7 @@ const GameView = () => {
 
   const handleUpdateReview = async () => {
     try {
-      const result = await updateReview(userState.token, params, review);
+      const result = await updateReview(user, params, review);
       setReview(result);
       getDetails();
       showToast("success", "Review updated", "Review");
@@ -314,7 +317,7 @@ const GameView = () => {
             </Box>
           </Box>
 
-          {userState.token ? (
+          {user ? (
             <Box mt={10}>
               <Heading size="md" mb={4}>
                 Rate & Review

@@ -12,13 +12,14 @@ import {
 import { FormEvent, useState } from "react";
 import { createUser } from "../Services/createUser";
 import { Link } from "react-router-dom";
-import { useUserContext } from "../Contexts/userContext";
 import Cookies from "universal-cookie";
 import { showToast } from "../Services/showToast";
+import { useDispatch } from "react-redux";
+import { login } from "../State/userSlice";
 
 const SignUp = () => {
   const cookies = new Cookies();
-  const { userDispatch } = useUserContext();
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -45,7 +46,7 @@ const SignUp = () => {
         const date = new Date();
         date.setDate(date.getDate() + 3);
         await cookies.set("x-auth-token", response, { expires: date });
-        userDispatch({ type: "login", payload: response });
+        dispatch(login(response));
         setFormData({ name: "", email: "", password: "" });
         showToast("success", "Sign Up successful", "Sign UP");
       } catch (err: any) {

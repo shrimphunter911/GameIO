@@ -19,13 +19,14 @@ import UploadWidget from "./UploadWidget";
 import { updateGame } from "../Services/updateGame";
 import { useGamesContext } from "../Contexts/gamesContext";
 import { showToast } from "../Services/showToast";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { editGame } from "../State/gamesSlice";
+import { RootState } from "../State/store";
 
 export default function EditGame() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { userState } = useUserContext();
+  const user = useSelector((state: RootState) => state.user.token);
   // const { gamesState, gamesDispatch } = useGamesContext();
   const params = useParams();
   const gameId = params.gameId;
@@ -97,7 +98,7 @@ export default function EditGame() {
     e.preventDefault();
     if (isFormValid) {
       try {
-        const response = await updateGame(game, userState.token, gameId);
+        const response = await updateGame(game, user, gameId);
         handleUpdatedGame(response);
         setIsError(false);
         showToast("success", "Updated successfully", "Success");

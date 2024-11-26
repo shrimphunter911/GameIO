@@ -1,20 +1,22 @@
 import { Button, HStack } from "@chakra-ui/react";
 import ColorModeSwitch from "./ColorModeSwitch";
 import { Link, useNavigate } from "react-router-dom";
-import { useUserContext } from "../Contexts/userContext";
 import Cookies from "universal-cookie";
 import { CirclePlus, House, Library, LogOut } from "lucide-react";
 import { showToast } from "../Services/showToast";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../State/store";
+import { logout } from "../State/userSlice";
 
 const NavBar = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const cookies = new Cookies();
-  const { userState, userDispatch } = useUserContext();
-
+  const user = useSelector((state: RootState) => state.user.token);
   const handleLogout = async () => {
     try {
       await cookies.remove("x-auth-token");
-      userDispatch({ type: "logout", payload: "" });
+      dispatch(logout());
       showToast("success", "Successfully Logged Out", "Log Out");
       navigate("/");
     } catch (error: any) {
@@ -31,7 +33,7 @@ const NavBar = () => {
       </Link>
       <HStack>
         <ColorModeSwitch />
-        {userState.token ? (
+        {user ? (
           <>
             <Link to="/games/mygames">
               <Button>

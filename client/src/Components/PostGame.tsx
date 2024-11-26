@@ -20,8 +20,9 @@ import { useUserContext } from "../Contexts/userContext";
 import UploadWidget from "./UploadWidget";
 import { useNavigate } from "react-router-dom";
 import { showToast } from "../Services/showToast";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addGames } from "../State/gamesSlice";
+import { RootState } from "../State/store";
 
 interface GenreOption {
   value: number;
@@ -39,7 +40,7 @@ const customSelectStyles: StylesConfig<GenreOption, true> = {
 export default function PostGame() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { userState } = useUserContext();
+  const user = useSelector((state: RootState) => state.user.token);
   const { genresState } = useGenresContext();
   const [game, setGame] = useState<Game>({
     title: "",
@@ -81,7 +82,7 @@ export default function PostGame() {
     e.preventDefault();
     if (validateForm()) {
       try {
-        const response = await createGame(game, userState.token);
+        const response = await createGame(game, user);
         dispatch(addGames(response));
         setGame({
           title: "",

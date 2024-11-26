@@ -1,13 +1,14 @@
 import { Navigate } from "react-router-dom";
-import { useUserContext } from "../Contexts/userContext";
+import { useSelector } from "react-redux";
+import { RootState } from "../State/store";
 
 interface Props {
   children: JSX.Element;
 }
 
 const ProtectedRoute = ({ children }: Props) => {
-  const { userState } = useUserContext();
-  return userState.token ? <Navigate to="/" replace /> : children;
+  const user = useSelector((state: RootState) => state.user.token);
+  return user ? <Navigate to="/" replace /> : children;
 };
 
 export default ProtectedRoute;

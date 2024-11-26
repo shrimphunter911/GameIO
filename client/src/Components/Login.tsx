@@ -12,9 +12,10 @@ import {
 import { FormEvent, useState } from "react";
 import { loginUser } from "../Services/authUser";
 import { Link } from "react-router-dom";
-import { useUserContext } from "../Contexts/userContext";
 import Cookies from "universal-cookie";
 import { showToast } from "../Services/showToast";
+import { useDispatch } from "react-redux";
+import { login } from "../State/userSlice";
 
 const Login = () => {
   const cookies = new Cookies();
@@ -24,8 +25,7 @@ const Login = () => {
   });
   const [error, setError] = useState("");
   const [isError, setIsError] = useState(false);
-  const { userDispatch } = useUserContext();
-
+  const dispatch = useDispatch();
   const isEmailValid = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isPasswordValid = (password: string) => password.length >= 8;
@@ -42,7 +42,7 @@ const Login = () => {
         const date = new Date();
         date.setDate(date.getDate() + 3);
         await cookies.set("x-auth-token", response, { expires: date });
-        userDispatch({ type: "login", payload: response });
+        dispatch(login(response));
         setFormData({ email: "", password: "" });
         showToast("success", "Login successful", "Login");
       } catch (err: any) {

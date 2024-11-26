@@ -28,7 +28,8 @@ interface Props {
 
 const MyGameCard = ({ game }: Props) => {
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const { userState } = useUserContext();
+  // const { userState } = useUserContext();
+  const user = useSelector((state: RootState) => state.user.token);
   // const { gamesState, gamesDispatch } = useGamesContext();
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -38,7 +39,7 @@ const MyGameCard = ({ game }: Props) => {
 
   const handleDelete = async () => {
     try {
-      const response = await deleteGame(userState.token, game.id);
+      const response = await deleteGame(user, game.id);
       dispatch(removeGame(game.id!));
       setDeleteDialogOpen(false);
       showToast("success", "Successfully removed", "Delete Game");
